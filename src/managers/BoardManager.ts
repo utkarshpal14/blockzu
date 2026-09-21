@@ -192,6 +192,63 @@ export class BoardManager {
   }
 
   /**
+   * Simulates placing a piece at (startRow, startCol) and returns the completed lines if placed.
+   * Used for real-time impending line clear highlights during drag.
+   */
+  public getPotentialCompletedLines(shape: PieceMatrix, startRow: number, startCol: number): { rows: number[]; cols: number[] } {
+    if (!this.canPlacePiece(shape, startRow, startCol)) {
+      return { rows: [], cols: [] };
+    }
+
+    const rows: number[] = [];
+    const cols: number[] = [];
+    const shapeRows = shape.length;
+    const shapeCols = shape[0].length;
+
+    // Check rows
+    for (let r = 0; r < GRID_SIZE; r++) {
+      let full = true;
+      for (let c = 0; c < GRID_SIZE; c++) {
+        let isFilled = this.grid[r][c] === 1;
+        if (!isFilled) {
+          const pr = r - startRow;
+          const pc = c - startCol;
+          if (pr >= 0 && pr < shapeRows && pc >= 0 && pc < shapeCols && shape[pr][pc] === 1) {
+            isFilled = true;
+          }
+        }
+        if (!isFilled) {
+          full = false;
+          break;
+        }
+      }
+      if (full) rows.push(r);
+    }
+
+    // Check columns
+    for (let c = 0; c < GRID_SIZE; c++) {
+      let full = true;
+      for (let r = 0; r < GRID_SIZE; r++) {
+        let isFilled = this.grid[r][c] === 1;
+        if (!isFilled) {
+          const pr = r - startRow;
+          const pc = c - startCol;
+          if (pr >= 0 && pr < shapeRows && pc >= 0 && pc < shapeCols && shape[pr][pc] === 1) {
+            isFilled = true;
+          }
+        }
+        if (!isFilled) {
+          full = false;
+          break;
+        }
+      }
+      if (full) cols.push(c);
+    }
+
+    return { rows, cols };
+  }
+
+  /**
    * Clears specified rows and columns.
    */
   public clearLines(rows: number[], cols: number[]): void {

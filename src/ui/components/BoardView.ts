@@ -15,11 +15,13 @@ import {
 import { BoardManager } from '../../managers/BoardManager';
 import { ThemeManager } from '../../managers/ThemeManager';
 import { PieceMatrix } from '../../types/Piece';
+import { BlockRenderer } from './BlockRenderer';
 
 /**
  * BOARD VIEW COMPONENT
- * Handles visual rendering of the 8x8 board card, cell slots, filled blocks, ghost previews,
- * and high-performance 200ms line clear sequences with particle bursts.
+ * Renders 3D glossy jewel blocks, deep recessed grid pockets, elevated glassmorphic
+ * board framing, placement squash-and-stretch juice, and explosive line clears.
+ * Defined in Document 02, 03 & Milestone 6.5.
  */
 export class BoardView {
   private scene: Phaser.Scene;
@@ -29,12 +31,13 @@ export class BoardView {
   private container: Phaser.GameObjects.Container;
   private bgGraphics: Phaser.GameObjects.Graphics;
   private emptyCellsGraphics: Phaser.GameObjects.Graphics;
+  private impendingHighlightGraphics: Phaser.GameObjects.Graphics;
   private previewGraphics: Phaser.GameObjects.Graphics;
   private filledTilesContainer: Phaser.GameObjects.Container;
   private flashOverlayGraphics: Phaser.GameObjects.Graphics;
   private particlesContainer: Phaser.GameObjects.Container;
 
-  private filledTileObjects: (Phaser.GameObjects.Graphics | null)[][];
+  private filledTileObjects: (Phaser.GameObjects.Container | null)[][];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -44,7 +47,8 @@ export class BoardView {
     this.container = this.scene.add.container(0, 0);
     this.bgGraphics = this.scene.add.graphics();
     this.emptyCellsGraphics = this.scene.add.graphics();
-    this.previewGraphics = this.scene.add.graphics();
+    this.impendingHighlightGraphics = this.scene.add.graphics().setDepth(15);
+    this.previewGraphics = this.scene.add.graphics().setDepth(18);
     this.filledTilesContainer = this.scene.add.container(0, 0);
     this.flashOverlayGraphics = this.scene.add.graphics().setDepth(20);
     this.particlesContainer = this.scene.add.container(0, 0).setDepth(30);
@@ -52,6 +56,7 @@ export class BoardView {
     this.container.add([
       this.bgGraphics,
       this.emptyCellsGraphics,
+      this.impendingHighlightGraphics,
       this.previewGraphics,
       this.filledTilesContainer,
       this.flashOverlayGraphics,
@@ -67,35 +72,43 @@ export class BoardView {
   }
 
   /**
-   * Renders the board background card and 64 cell slots.
+   * Renders elevated glassmorphic board frame and 64 deep recessed grid slots.
    */
   public renderBoard(): void {
     const theme = this.themeManager.getActiveColors();
     const boardColor = Phaser.Display.Color.HexStringToColor(theme.board).color;
     const cardBgColor = Phaser.Display.Color.HexStringToColor(theme.cardBackground).color;
-    const emptyCellColor = Phaser.Display.Color.HexStringToColor(theme.cellEmpty).color;
 
-    // 1. Board Card (Outer container with elevation effect)
     this.bgGraphics.clear();
 
-    // Soft drop shadow simulation
-    this.bgGraphics.fillStyle(0x000000, 0.15);
-    this.bgGraphics.fillRoundedRect(BOARD_CARD_X, BOARD_CARD_Y + 4, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, 18);
+    // 1. Deep Drop Shadow for Board Elevation
+    this.bgGraphics.fillStyle(0x000000, 0.5);
+    this.bgGraphics.fillRoundedRect(BOARD_CARD_X, BOARD_CARD_Y + 6, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, 22);
 
-    // Board Card Surface
+    // 2. Board Frame Surface (Glassmorphic dark container)
     this.bgGraphics.fillStyle(cardBgColor, 0.95);
-    this.bgGraphics.lineStyle(1.5, boardColor, 0.8);
-    this.bgGraphics.fillRoundedRect(BOARD_CARD_X, BOARD_CARD_Y, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, 18);
-    this.bgGraphics.strokeRoundedRect(BOARD_CARD_X, BOARD_CARD_Y, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, 18);
+    this.bgGraphics.fillRoundedRect(BOARD_CARD_X, BOARD_CARD_Y, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, 22);
 
-    // 2. 64 Empty Cell Slots
+    // 3. Subtle Metallic Bezel Outline
+    this.bgGraphics.lineStyle(2, boardColor, 1);
+    this.bgGraphics.strokeRoundedRect(BOARD_CARD_X, BOARD_CARD_Y, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, 22);
+
+    this.bgGraphics.lineStyle(1, 0xffffff, 0.18);
+    this.bgGraphics.strokeRoundedRect(BOARD_CARD_X + 1, BOARD_CARD_Y + 1, BOARD_CARD_WIDTH - 2, BOARD_CARD_HEIGHT - 2, 21);
+
+    // 4. 64 Deep Recessed Empty Cell Pockets
     this.emptyCellsGraphics.clear();
-    this.emptyCellsGraphics.fillStyle(emptyCellColor, 0.35);
-
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
         const pos = this.boardManager.getCellTopLeft(r, c);
-        this.emptyCellsGraphics.fillRoundedRect(pos.x, pos.y, CELL_SIZE, CELL_SIZE, CELL_RADIUS);
+        BlockRenderer.renderRecessedSlot(
+          this.emptyCellsGraphics,
+          pos.x,
+          pos.y,
+          CELL_SIZE,
+          CELL_RADIUS,
+          theme.cellEmpty
+        );
       }
     }
 
@@ -117,18 +130,24 @@ export class BoardView {
           if (!this.filledTileObjects[r][c]) {
             const pos = this.boardManager.getCellTopLeft(r, c);
             const tileColorHex = colorGrid[r][c] || defaultColor;
-            const tileColor = Phaser.Display.Color.HexStringToColor(tileColorHex).color;
 
-            const tile = this.scene.add.graphics();
-            tile.fillStyle(tileColor, 1);
-            tile.fillRoundedRect(pos.x, pos.y, CELL_SIZE, CELL_SIZE, CELL_RADIUS);
+            // Container for individual block allowing squash & stretch
+            const tileContainer = this.scene.add.container(pos.x + CELL_SIZE / 2, pos.y + CELL_SIZE / 2);
+            const tileG = this.scene.add.graphics();
+            tileContainer.add(tileG);
 
-            // Subtle gloss border
-            tile.lineStyle(1.5, 0xffffff, 0.25);
-            tile.strokeRoundedRect(pos.x, pos.y, CELL_SIZE, CELL_SIZE, CELL_RADIUS);
+            // Render 3D Jewel Block centered inside container
+            BlockRenderer.renderJewelBlock(
+              tileG,
+              -CELL_SIZE / 2,
+              -CELL_SIZE / 2,
+              CELL_SIZE,
+              CELL_RADIUS,
+              tileColorHex
+            );
 
-            this.filledTilesContainer.add(tile);
-            this.filledTileObjects[r][c] = tile;
+            this.filledTilesContainer.add(tileContainer);
+            this.filledTileObjects[r][c] = tileContainer;
           }
         } else {
           if (this.filledTileObjects[r][c]) {
@@ -141,12 +160,45 @@ export class BoardView {
   }
 
   /**
+   * Triggers a juicy squash-and-stretch tactile pop on placed blocks.
+   */
+  public animatePlacementJuice(placedCoords: { row: number; col: number }[]): void {
+    const theme = this.themeManager.getActiveColors();
+    const accentCol = Phaser.Display.Color.HexStringToColor(theme.accent).color;
+
+    placedCoords.forEach(({ row, col }) => {
+      const tile = this.filledTileObjects[row]?.[col];
+      if (tile) {
+        tile.setScale(1.18, 0.85); // Squash
+        this.scene.tweens.add({
+          targets: tile,
+          scaleX: 0.94,
+          scaleY: 1.08, // Stretch bounce
+          duration: 60,
+          ease: 'Quad.easeOut',
+          onComplete: () => {
+            this.scene.tweens.add({
+              targets: tile,
+              scaleX: 1.0,
+              scaleY: 1.0,
+              duration: 50,
+              ease: 'Sine.easeInOut'
+            });
+          }
+        });
+      }
+
+      // Micro-spark burst
+      const center = this.boardManager.getCellCenter(row, col);
+      this.spawnPlacementSparks(center.x, center.y, accentCol);
+    });
+  }
+
+  /**
    * Draws real-time green/red placement ghost preview over target cells.
    */
   public drawGhostPreview(shape: PieceMatrix, startRow: number, startCol: number, isValid: boolean): void {
     this.previewGraphics.clear();
-    const color = isValid ? 0x22c55e : 0xef4444; // Green vs Red
-    const alpha = isValid ? 0.45 : 0.35;
 
     const shapeRows = shape.length;
     const shapeCols = shape[0].length;
@@ -159,33 +211,113 @@ export class BoardView {
 
           if (this.boardManager.isInside(targetRow, targetCol)) {
             const pos = this.boardManager.getCellTopLeft(targetRow, targetCol);
-            this.previewGraphics.fillStyle(color, alpha);
-            this.previewGraphics.fillRoundedRect(pos.x, pos.y, CELL_SIZE, CELL_SIZE, CELL_RADIUS);
-            this.previewGraphics.lineStyle(2, color, 0.8);
-            this.previewGraphics.strokeRoundedRect(pos.x, pos.y, CELL_SIZE, CELL_SIZE, CELL_RADIUS);
+            BlockRenderer.renderGhostBlock(
+              this.previewGraphics,
+              pos.x,
+              pos.y,
+              CELL_SIZE,
+              CELL_RADIUS,
+              isValid
+            );
           }
         }
       }
     }
   }
 
-  /**
-   * Clears ghost placement preview.
-   */
   public clearGhostPreview(): void {
     this.previewGraphics.clear();
   }
 
   /**
-   * Fast, punchy 200ms line clear sequence:
-   * 1. 50ms White Flash on unique cells (Set<string> deduplication)
-   * 2. 100ms Shrink + 8-12 Particle Sparks
-   * 3. 50ms Fade to empty
+   * Highlights full impending completed rows and columns with a brilliant neon aura,
+   * glowing beam overlay, and perimeter sparkles during piece drag.
+   * Matches Block Blast live anticipation visual effect.
+   */
+  public drawImpendingClearHighlight(rows: number[], cols: number[], pieceColorHex?: string): void {
+    this.impendingHighlightGraphics.clear();
+    if (rows.length === 0 && cols.length === 0) return;
+
+    const theme = this.themeManager.getActiveColors();
+    const auraColor = pieceColorHex
+      ? Phaser.Display.Color.HexStringToColor(pieceColorHex).color
+      : Phaser.Display.Color.HexStringToColor(theme.accent).color;
+
+    const gridWidth = 8 * CELL_SIZE + 7 * CELL_GAP;
+    const gridHeight = 8 * CELL_SIZE + 7 * CELL_GAP;
+
+    // 1. Highlight Impending Rows
+    rows.forEach((r) => {
+      const pos = this.boardManager.getCellTopLeft(r, 0);
+      const rx = pos.x - 3;
+      const ry = pos.y - 3;
+      const rw = gridWidth + 6;
+      const rh = CELL_SIZE + 6;
+
+      // Outer wide glow aura
+      this.impendingHighlightGraphics.lineStyle(7, auraColor, 0.45);
+      this.impendingHighlightGraphics.strokeRoundedRect(rx, ry, rw, rh, CELL_RADIUS + 3);
+
+      // Mid neon stroke
+      this.impendingHighlightGraphics.lineStyle(3, 0xffffff, 0.95);
+      this.impendingHighlightGraphics.strokeRoundedRect(rx, ry, rw, rh, CELL_RADIUS + 3);
+
+      // Inner color beam
+      this.impendingHighlightGraphics.fillStyle(auraColor, 0.28);
+      this.impendingHighlightGraphics.fillRoundedRect(rx, ry, rw, rh, CELL_RADIUS + 3);
+
+      // Perimeter glowing sparkle dots along the row
+      for (let c = 0; c < 8; c++) {
+        const dotPos = this.boardManager.getCellCenter(r, c);
+        this.impendingHighlightGraphics.fillStyle(0xffffff, 0.9);
+        this.impendingHighlightGraphics.fillCircle(dotPos.x, ry + 1, 2);
+        this.impendingHighlightGraphics.fillCircle(dotPos.x, ry + rh - 1, 2);
+      }
+    });
+
+    // 2. Highlight Impending Columns
+    cols.forEach((c) => {
+      const pos = this.boardManager.getCellTopLeft(0, c);
+      const cx = pos.x - 3;
+      const cy = pos.y - 3;
+      const cw = CELL_SIZE + 6;
+      const ch = gridHeight + 6;
+
+      // Outer wide glow aura
+      this.impendingHighlightGraphics.lineStyle(7, auraColor, 0.45);
+      this.impendingHighlightGraphics.strokeRoundedRect(cx, cy, cw, ch, CELL_RADIUS + 3);
+
+      // Mid neon stroke
+      this.impendingHighlightGraphics.lineStyle(3, 0xffffff, 0.95);
+      this.impendingHighlightGraphics.strokeRoundedRect(cx, cy, cw, ch, CELL_RADIUS + 3);
+
+      // Inner color beam
+      this.impendingHighlightGraphics.fillStyle(auraColor, 0.28);
+      this.impendingHighlightGraphics.fillRoundedRect(cx, cy, cw, ch, CELL_RADIUS + 3);
+
+      // Perimeter glowing sparkle dots along the column
+      for (let r = 0; r < 8; r++) {
+        const dotPos = this.boardManager.getCellCenter(r, c);
+        this.impendingHighlightGraphics.fillStyle(0xffffff, 0.9);
+        this.impendingHighlightGraphics.fillCircle(cx + 1, dotPos.y, 2);
+        this.impendingHighlightGraphics.fillCircle(cx + cw - 1, dotPos.y, 2);
+      }
+    });
+  }
+
+  public clearImpendingClearHighlight(): void {
+    this.impendingHighlightGraphics.clear();
+  }
+
+  /**
+   * Explosive 200ms line clear sequence with neon beams and sparkling fireworks:
+   * 1. 50ms Radiant Neon Beam Flash on unique cleared cells
+   * 2. 16-24 Sparkling Physics Particles per line
+   * 3. 100ms Shrink + 50ms Fade
    */
   public animateLineClears(rows: number[], cols: number[], onComplete?: () => void): void {
-    // 1. Deduplicate unique cells using Set<string> ("row-col")
     const uniqueCellKeys = new Set<string>();
-    const uniqueCells: { row: number; col: number; obj: Phaser.GameObjects.Graphics }[] = [];
+    const uniqueCells: { row: number; col: number; obj: Phaser.GameObjects.Container }[] = [];
 
     rows.forEach((r) => {
       for (let c = 0; c < GRID_SIZE; c++) {
@@ -221,31 +353,67 @@ export class BoardView {
     const theme = this.themeManager.getActiveColors();
     const particleColor = Phaser.Display.Color.HexStringToColor(theme.accent).color;
 
-    // Step 1: 50ms Flash Overlay
+    // 1. Draw Intense Neon Laser Aura around clearing rows and columns (Block Blast Style)
     this.flashOverlayGraphics.clear();
-    this.flashOverlayGraphics.fillStyle(0xffffff, 0.7);
-    uniqueCells.forEach(({ row, col }) => {
-      const pos = this.boardManager.getCellTopLeft(row, col);
-      this.flashOverlayGraphics.fillRoundedRect(pos.x, pos.y, CELL_SIZE, CELL_SIZE, CELL_RADIUS);
+
+    const gridWidth = 8 * CELL_SIZE + 7 * CELL_GAP;
+    const gridHeight = 8 * CELL_SIZE + 7 * CELL_GAP;
+
+    // Rows Laser Aura
+    rows.forEach((r) => {
+      const pos = this.boardManager.getCellTopLeft(r, 0);
+      const rx = pos.x - 3;
+      const ry = pos.y - 3;
+      const rw = gridWidth + 6;
+      const rh = CELL_SIZE + 6;
+
+      // Outer glow
+      this.flashOverlayGraphics.lineStyle(6, particleColor, 0.5);
+      this.flashOverlayGraphics.strokeRoundedRect(rx, ry, rw, rh, CELL_RADIUS + 2);
+      // Mid neon stroke
+      this.flashOverlayGraphics.lineStyle(3, 0xffffff, 0.9);
+      this.flashOverlayGraphics.strokeRoundedRect(rx, ry, rw, rh, CELL_RADIUS + 2);
+      // Fill flash
+      this.flashOverlayGraphics.fillStyle(0xffffff, 0.4);
+      this.flashOverlayGraphics.fillRoundedRect(rx, ry, rw, rh, CELL_RADIUS + 2);
+    });
+
+    // Cols Laser Aura
+    cols.forEach((c) => {
+      const pos = this.boardManager.getCellTopLeft(0, c);
+      const cx = pos.x - 3;
+      const cy = pos.y - 3;
+      const cw = CELL_SIZE + 6;
+      const ch = gridHeight + 6;
+
+      // Outer glow
+      this.flashOverlayGraphics.lineStyle(6, particleColor, 0.5);
+      this.flashOverlayGraphics.strokeRoundedRect(cx, cy, cw, ch, CELL_RADIUS + 2);
+      // Mid neon stroke
+      this.flashOverlayGraphics.lineStyle(3, 0xffffff, 0.9);
+      this.flashOverlayGraphics.strokeRoundedRect(cx, cy, cw, ch, CELL_RADIUS + 2);
+      // Fill flash
+      this.flashOverlayGraphics.fillStyle(0xffffff, 0.4);
+      this.flashOverlayGraphics.fillRoundedRect(cx, cy, cw, ch, CELL_RADIUS + 2);
     });
 
     this.scene.time.delayedCall(LINE_FLASH_DURATION, () => {
       this.flashOverlayGraphics.clear();
 
-      // Step 2: Spawn 8-10 lightweight particle sparks per unique cell
+      // 2. Spawn 12-16 Sparkling Fireworks Particles per unique cell
       uniqueCells.forEach(({ row, col }) => {
         const center = this.boardManager.getCellCenter(row, col);
-        this.spawnCellSparks(center.x, center.y, particleColor);
+        this.spawnCellFireworks(center.x, center.y, particleColor);
       });
 
-      // Step 3: Shrink (100ms) & Fade (50ms)
+      // 3. Shrink & Fade
       const tileObjects = uniqueCells.map((c) => c.obj);
       this.scene.tweens.add({
         targets: tileObjects,
-        scale: 0.1,
+        scale: 0.05,
         alpha: 0,
         duration: LINE_SHRINK_DURATION + LINE_FADE_DURATION,
-        ease: 'Quad.easeIn',
+        ease: 'Cubic.easeIn',
         onComplete: () => {
           this.boardManager.clearLines(rows, cols);
           this.updateFilledTiles();
@@ -256,35 +424,53 @@ export class BoardView {
   }
 
   /**
-   * Lightweight particle sparks (8-10 particles, 250ms lifetime).
+   * Micro-spark pop when a piece is dropped onto the board.
    */
-  private spawnCellSparks(x: number, y: number, color: number): void {
-    const count = 8;
+  private spawnPlacementSparks(x: number, y: number, color: number): void {
+    const count = 6;
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.4 - 0.2);
-      const speed = Math.random() * 35 + 25;
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-
-      const spark = this.scene.add.graphics();
-      spark.fillStyle(color, 1);
-      spark.fillCircle(0, 0, Math.random() * 2.5 + 2);
-      spark.x = x;
-      spark.y = y;
-
+      const speed = Math.random() * 20 + 15;
+      const spark = this.scene.add.circle(x, y, 2, color);
       this.particlesContainer.add(spark);
 
       this.scene.tweens.add({
         targets: spark,
-        x: x + vx,
-        y: y + vy,
+        x: x + Math.cos(angle) * speed,
+        y: y + Math.sin(angle) * speed,
         alpha: 0,
         scale: 0.2,
-        duration: 250,
+        duration: 180,
         ease: 'Quad.easeOut',
-        onComplete: () => {
-          spark.destroy();
-        }
+        onComplete: () => spark.destroy()
+      });
+    }
+  }
+
+  /**
+   * Radiant fireworks particle explosion on line clear.
+   */
+  private spawnCellFireworks(x: number, y: number, color: number): void {
+    const count = 12;
+    const colors = [color, 0xFFD700, 0xFFFFFF];
+
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
+      const speed = Math.random() * 55 + 30;
+      const col = colors[Phaser.Math.Between(0, colors.length - 1)];
+
+      const spark = this.scene.add.circle(x, y, Phaser.Math.FloatBetween(2, 3.8), col);
+      this.particlesContainer.add(spark);
+
+      this.scene.tweens.add({
+        targets: spark,
+        x: x + Math.cos(angle) * speed,
+        y: y + Math.sin(angle) * speed,
+        alpha: 0,
+        scale: 0.1,
+        duration: Phaser.Math.Between(260, 420),
+        ease: 'Cubic.easeOut',
+        onComplete: () => spark.destroy()
       });
     }
   }

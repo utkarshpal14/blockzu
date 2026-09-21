@@ -45,6 +45,16 @@ export class AchievementManager {
     return this.saveManager.getData().achievements.find((a) => a.id === id);
   }
 
+  public hasUnclaimedAchievements(): boolean {
+    return this.getUnclaimedCount() > 0;
+  }
+
+  public getUnclaimedCount(): number {
+    const data = this.saveManager.getData();
+    if (!data.achievements) return 0;
+    return data.achievements.filter((a) => a.completed && !a.claimed).length;
+  }
+
   /**
    * Updates progress for a given achievement and checks completion.
    */
@@ -82,6 +92,11 @@ export class AchievementManager {
     if (def.rewardCoins > 0) {
       this.saveManager.addCoins(def.rewardCoins);
     }
+
+    if (id === 'collector') {
+      this.saveManager.unlockTheme('golden');
+    }
+
     this.saveManager.save();
     return true;
   }

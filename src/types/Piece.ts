@@ -11,6 +11,7 @@ export interface PieceDefinition {
   cells: PieceMatrix;
   weight: number;
   blockCount: number;
+  color?: string;
 }
 
 export interface PlacedTile {

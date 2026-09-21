@@ -1,19 +1,21 @@
 import { StorageService } from '../services/StorageService';
-import { PlayerData, SettingsData, ThemeData } from '../types/PlayerData';
+import { PlayerData, SaveMetadata, SettingsData, ThemeData } from '../types/PlayerData';
 
 /**
  * SAVE MANAGER
- * Manages player profile, high scores, coins, settings, and stats persistence.
+ * Manages player profile, high scores, coins, settings, metadata, and stats persistence.
  * Canonical model defined in Document 07.
  */
 export class SaveManager {
   private static instance: SaveManager;
   private storage: StorageService;
   private data: PlayerData;
+  private sessionStartTime: number = Date.now();
 
   private constructor() {
     this.storage = StorageService.getInstance();
     this.data = this.storage.load();
+    this.bindLifecycleEvents();
   }
 
   public static getInstance(): SaveManager {
@@ -21,6 +23,23 @@ export class SaveManager {
       SaveManager.instance = new SaveManager();
     }
     return SaveManager.instance;
+  }
+
+  private bindLifecycleEvents() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        this.flushSessionPlayTime();
+        this.save();
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          this.flushSessionPlayTime();
+          this.save();
+        } else {
+          this.sessionStartTime = Date.now();
+        }
+      });
+    }
   }
 
   public getData(): PlayerData {
@@ -33,7 +52,36 @@ export class SaveManager {
 
   public resetProgress(): PlayerData {
     this.data = this.storage.reset();
+    this.sessionStartTime = Date.now();
     return this.data;
+  }
+
+  // --- Metadata & Playtime ---
+  public getMetadata(): SaveMetadata {
+    if (!this.data.metadata) {
+      this.data.metadata = {
+        version: 1,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        totalPlayTime: 0
+      };
+    }
+    return this.data.metadata;
+  }
+
+  public addPlayTime(seconds: number): number {
+    const meta = this.getMetadata();
+    meta.totalPlayTime += Math.max(0, Math.floor(seconds));
+    return meta.totalPlayTime;
+  }
+
+  public flushSessionPlayTime() {
+    const now = Date.now();
+    const elapsedSeconds = Math.floor((now - this.sessionStartTime) / 1000);
+    if (elapsedSeconds > 0) {
+      this.addPlayTime(elapsedSeconds);
+      this.sessionStartTime = now;
+    }
   }
 
   // --- Profile & Score ---
@@ -58,14 +106,14 @@ export class SaveManager {
   }
 
   public addCoins(amount: number): number {
-    this.data.economy.coins = Math.min(this.data.economy.coins + amount, 99999);
+    this.data.economy.coins = Math.max(0, Math.min(this.data.economy.coins + amount, 99999));
     this.save();
     return this.data.economy.coins;
   }
 
   public spendCoins(amount: number): boolean {
-    if (this.data.economy.coins >= amount) {
-      this.data.economy.coins -= amount;
+    if (this.data.economy.coins >= amount && amount > 0) {
+      this.data.economy.coins = Math.max(0, this.data.economy.coins - amount);
       this.save();
       return true;
     }

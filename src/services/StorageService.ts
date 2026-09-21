@@ -51,6 +51,18 @@ export class StorageService {
         return false;
       }
 
+      // Update metadata timestamp
+      if (data.metadata) {
+        data.metadata.updatedAt = Date.now();
+      } else {
+        data.metadata = {
+          version: 1,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          totalPlayTime: 0
+        };
+      }
+
       const serialized = JSON.stringify(data);
       // Backup previous good save
       const current = localStorage.getItem(STORAGE_KEY_PLAYER_DATA);
@@ -99,8 +111,29 @@ export class StorageService {
    * Migrates older save formats to current version.
    */
   private migrate(data: PlayerData): PlayerData {
+    let changed = false;
     if (data.version !== SAVE_VERSION) {
       data.version = SAVE_VERSION;
+      changed = true;
+    }
+    if (!data.metadata) {
+      data.metadata = {
+        version: 1,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        totalPlayTime: 0
+      };
+      changed = true;
+    }
+    if (data.statistics.bestSingleMoveScore === undefined) {
+      data.statistics.bestSingleMoveScore = 0;
+      changed = true;
+    }
+    if (!data.dailyReward) {
+      data.dailyReward = { lastClaimTime: 0, currentStreak: 0 };
+      changed = true;
+    }
+    if (changed) {
       this.save(data);
     }
     return data;

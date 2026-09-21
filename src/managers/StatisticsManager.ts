@@ -40,4 +40,12 @@ export class StatisticsManager {
 
     this.saveManager.save();
   }
+
+  public recordMoveScore(moveScore: number) {
+    const stats = this.saveManager.getData().statistics;
+    if (moveScore > (stats.bestSingleMoveScore || 0)) {
+      stats.bestSingleMoveScore = moveScore;
+      this.saveManager.save();
+    }
+  }
 }

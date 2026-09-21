@@ -2,11 +2,12 @@ import Phaser from 'phaser';
 import { CELL_SIZE, CELL_GAP, CELL_RADIUS, TRAY_SCALE } from '../../constants/gameplay';
 import { PieceDefinition } from '../../types/Piece';
 import { ThemeManager } from '../../managers/ThemeManager';
+import { BlockRenderer } from './BlockRenderer';
 
 /**
  * PIECE VIEW COMPONENT
- * Renders a tactile, glossy polyomino piece as a Phaser Container.
- * Pure view component (receives pure data PieceDefinition).
+ * Renders a tactile, 3D glossy jewel polyomino piece as a Phaser Container.
+ * Defined in Document 03 & Milestone 6.5.
  */
 export class PieceView extends Phaser.GameObjects.Container {
   private definition: PieceDefinition;
@@ -38,12 +39,12 @@ export class PieceView extends Phaser.GameObjects.Container {
   }
 
   /**
-   * Redraws the piece blocks with theme colors and gloss highlights.
+   * Redraws the piece blocks with 3D glossy jewel rendering.
    */
   public renderShape(): void {
     this.graphics.clear();
     const theme = ThemeManager.getInstance().getActiveColors();
-    const tileColor = Phaser.Display.Color.HexStringToColor(theme.cellFilled).color;
+    const tileColorHex = this.definition.color || theme.cellFilled;
 
     const { width, height, rows, cols } = this.getShapeDimensions();
     this.shapeWidth = width;
@@ -59,17 +60,8 @@ export class PieceView extends Phaser.GameObjects.Container {
           const x = startX + c * (CELL_SIZE + CELL_GAP);
           const y = startY + r * (CELL_SIZE + CELL_GAP);
 
-          // 1. Base Tile Body
-          this.graphics.fillStyle(tileColor, 1);
-          this.graphics.fillRoundedRect(x, y, CELL_SIZE, CELL_SIZE, CELL_RADIUS);
-
-          // 2. Gloss highlight (top shine)
-          this.graphics.fillStyle(0xffffff, 0.22);
-          this.graphics.fillRoundedRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE * 0.35, Math.max(CELL_RADIUS - 2, 2));
-
-          // 3. Subtle stroke border
-          this.graphics.lineStyle(1.5, 0xffffff, 0.3);
-          this.graphics.strokeRoundedRect(x, y, CELL_SIZE, CELL_SIZE, CELL_RADIUS);
+          // 3D Glossy Jewel Block
+          BlockRenderer.renderJewelBlock(this.graphics, x, y, CELL_SIZE, CELL_RADIUS, tileColorHex);
         }
       }
     }

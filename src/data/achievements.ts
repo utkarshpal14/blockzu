@@ -2,10 +2,11 @@ import { AchievementDefinition } from '../types/Achievement';
 
 /**
  * LAUNCH ACHIEVEMENTS (20 Total)
- * Defined in Document 05 (Achievements & Missions System).
+ * Calibrated Economy: Small (50-100), Medium (150-300), Major (350-500).
+ * Prevents economic inflation while maintaining rewarding progression.
  */
 export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
-  // --- Beginner Achievements ---
+  // --- Beginner Achievements (Small: 50-75) ---
   {
     id: 'first_placement',
     title: 'First Placement',
@@ -21,7 +22,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Finish your first game match.',
     category: 'beginner',
     target: 1,
-    rewardCoins: 100,
+    rewardCoins: 75,
     icon: 'trophy'
   },
   {
@@ -30,18 +31,18 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Clear 2 or more lines simultaneously in one move.',
     category: 'beginner',
     target: 1,
-    rewardCoins: 100,
+    rewardCoins: 75,
     icon: 'zap'
   },
 
-  // --- Score Achievements ---
+  // --- Score Achievements (Small to Major: 75 - 500) ---
   {
     id: 'score_100',
     title: 'Rising Star',
     description: 'Reach a score of 100 points in a single game.',
     category: 'score',
     target: 100,
-    rewardCoins: 100,
+    rewardCoins: 75,
     icon: 'star'
   },
   {
@@ -68,7 +69,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Reach a score of 2,500 points in a single game.',
     category: 'score',
     target: 2500,
-    rewardCoins: 500,
+    rewardCoins: 350,
     icon: 'crown'
   },
   {
@@ -77,11 +78,11 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Reach a score of 5,000 points in a single game.',
     category: 'score',
     target: 5000,
-    rewardCoins: 1000,
+    rewardCoins: 500,
     icon: 'gem'
   },
 
-  // --- Gameplay Achievements ---
+  // --- Gameplay / Dedication (Medium to Major: 150 - 500) ---
   {
     id: 'play_10_games',
     title: 'Casual Player',
@@ -97,7 +98,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Play a total of 50 matches.',
     category: 'gameplay',
     target: 50,
-    rewardCoins: 300,
+    rewardCoins: 250,
     icon: 'flame'
   },
   {
@@ -106,18 +107,18 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Play a total of 100 matches.',
     category: 'gameplay',
     target: 100,
-    rewardCoins: 750,
+    rewardCoins: 500,
     icon: 'medal'
   },
 
-  // --- Line Clear Achievements ---
+  // --- Line Clear Achievements (Small to Major: 75 - 500) ---
   {
     id: 'clear_10_lines',
     title: 'Cleaner',
     description: 'Clear a total of 10 lines.',
     category: 'lines',
     target: 10,
-    rewardCoins: 100,
+    rewardCoins: 75,
     icon: 'grid'
   },
   {
@@ -126,7 +127,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Clear a total of 50 lines.',
     category: 'lines',
     target: 50,
-    rewardCoins: 250,
+    rewardCoins: 200,
     icon: 'layers'
   },
   {
@@ -135,7 +136,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Clear a total of 100 lines.',
     category: 'lines',
     target: 100,
-    rewardCoins: 500,
+    rewardCoins: 300,
     icon: 'target'
   },
   {
@@ -144,18 +145,18 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Clear a total of 500 lines.',
     category: 'lines',
     target: 500,
-    rewardCoins: 1000,
+    rewardCoins: 500,
     icon: 'sparkles'
   },
 
-  // --- Combo Achievements ---
+  // --- Combo Achievements (Medium to Major: 150 - 500) ---
   {
     id: 'combo_10',
     title: 'Combo Starter',
     description: 'Perform a total of 10 combos.',
     category: 'combos',
     target: 10,
-    rewardCoins: 200,
+    rewardCoins: 150,
     icon: 'activity'
   },
   {
@@ -164,7 +165,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Perform a total of 50 combos.',
     category: 'combos',
     target: 50,
-    rewardCoins: 500,
+    rewardCoins: 300,
     icon: 'battery-charging'
   },
   {
@@ -173,7 +174,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     description: 'Perform a total of 100 combos.',
     category: 'combos',
     target: 100,
-    rewardCoins: 1000,
+    rewardCoins: 500,
     icon: 'zap-off'
   },
 
@@ -197,3 +198,4 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
     icon: 'sun'
   }
 ];
+

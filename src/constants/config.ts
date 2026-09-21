@@ -9,6 +9,12 @@ export const SAVE_VERSION = '1.0.0';
 
 export const DEFAULT_PLAYER_DATA: PlayerData = {
   version: SAVE_VERSION,
+  metadata: {
+    version: 1,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    totalPlayTime: 0
+  },
   profile: {
     bestScore: 0,
     totalGamesPlayed: 0
@@ -20,7 +26,8 @@ export const DEFAULT_PLAYER_DATA: PlayerData = {
     linesCleared: 0,
     blocksPlaced: 0,
     longestCombo: 0,
-    averageScore: 0
+    averageScore: 0,
+    bestSingleMoveScore: 0
   },
   achievements: [],
   missions: [],
@@ -35,5 +42,9 @@ export const DEFAULT_PLAYER_DATA: PlayerData = {
     soundEnabled: true,
     musicEnabled: true,
     vibrationEnabled: true
+  },
+  dailyReward: {
+    lastClaimTime: 0,
+    currentStreak: 0
   }
 };

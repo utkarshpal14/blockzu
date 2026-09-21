@@ -157,6 +157,7 @@ This is the authoritative `PlayerData` interface. All other documents must refer
 ```typescript
 interface PlayerData {
   version: string;
+  metadata?: SaveMetadata;
   profile: ProfileData;
   statistics: StatisticsData;
   achievements: AchievementData[];
@@ -164,6 +165,14 @@ interface PlayerData {
   themes: ThemeData;
   economy: EconomyData;
   settings: SettingsData;
+  dailyReward?: DailyRewardData;
+}
+
+interface SaveMetadata {
+  version: number;
+  createdAt: number;
+  updatedAt: number;
+  totalPlayTime: number; // in seconds
 }
 ```
 

@@ -1,5 +1,20 @@
 import Phaser from 'phaser';
-import { TRAY_Y, TRAY_SLOT_X_OFFSETS, TRAY_SCALE, DRAG_SCALE, DRAG_OFFSET_Y, SNAP_DURATION, SPRING_BACK_DURATION } from '../../constants/gameplay';
+import {
+  TRAY_Y,
+  TRAY_SLOT_X_OFFSETS,
+  TRAY_SCALE,
+  DRAG_SCALE,
+  DRAG_OFFSET_Y,
+  SNAP_DURATION,
+  SPRING_BACK_DURATION,
+  TRAY_DOCK_X,
+  TRAY_DOCK_Y,
+  TRAY_DOCK_WIDTH,
+  TRAY_DOCK_HEIGHT,
+  TRAY_DOCK_RADIUS,
+  CELL_SIZE,
+  CELL_GAP
+} from '../../constants/gameplay';
 import { PieceManager } from '../../managers/PieceManager';
 import { BoardManager } from '../../managers/BoardManager';
 import { AudioManager } from '../../managers/AudioManager';
@@ -11,9 +26,9 @@ import { PieceDefinition } from '../../types/Piece';
 
 /**
  * TRAY VIEW COMPONENT
- * Manages the 3-piece batch tray lifecycle, touch drag-and-drop, finger offset,
- * input locking, and grid snapping.
- * Defined in Document 02, 04 & Milestone 2/3/4.
+ * Renders the elevated glassmorphic console dock, 3 recessed piece pedestals,
+ * and coordinates touch drag-and-drop mechanics with placement juice.
+ * Defined in Document 02, 04 & Milestone 6.5.
  */
 export class TrayView {
   private scene: Phaser.Scene;
@@ -22,6 +37,9 @@ export class TrayView {
   private boardManager: BoardManager;
   private audioManager: AudioManager;
   private scoreManager: ScoreManager;
+
+  private dockContainer: Phaser.GameObjects.Container;
+  private dockGraphics: Phaser.GameObjects.Graphics;
 
   private pieceViews: (PieceView | null)[];
   private isDragging: boolean = false;
@@ -47,8 +65,57 @@ export class TrayView {
     this.audioManager = AudioManager.getInstance();
     this.scoreManager = ScoreManager.getInstance();
 
+    this.dockContainer = this.scene.add.container(0, 0);
+    this.dockGraphics = this.scene.add.graphics();
+    this.dockContainer.add(this.dockGraphics);
+
+    this.renderDock();
+
     this.pieceViews = [null, null, null];
     this.spawnBatch();
+  }
+
+  /**
+   * Renders the glassmorphic console shelf dock with 3 recessed pedestals.
+   */
+  public renderDock(): void {
+    this.dockGraphics.clear();
+    const theme = ThemeManager.getInstance().getActiveColors();
+    const cardBg = Phaser.Display.Color.HexStringToColor(theme.cardBackground).color;
+    const boardCol = Phaser.Display.Color.HexStringToColor(theme.board).color;
+    const emptyCellCol = Phaser.Display.Color.HexStringToColor(theme.cellEmpty).color;
+
+    // 1. Drop Shadow for Dock Elevation
+    this.dockGraphics.fillStyle(0x000000, 0.45);
+    this.dockGraphics.fillRoundedRect(TRAY_DOCK_X, TRAY_DOCK_Y + 5, TRAY_DOCK_WIDTH, TRAY_DOCK_HEIGHT, TRAY_DOCK_RADIUS);
+
+    // 2. Frosted Glass Dock Body
+    this.dockGraphics.fillStyle(cardBg, 0.95);
+    this.dockGraphics.fillRoundedRect(TRAY_DOCK_X, TRAY_DOCK_Y, TRAY_DOCK_WIDTH, TRAY_DOCK_HEIGHT, TRAY_DOCK_RADIUS);
+
+    // 3. Metallic Outer Bezel
+    this.dockGraphics.lineStyle(2, boardCol, 1);
+    this.dockGraphics.strokeRoundedRect(TRAY_DOCK_X, TRAY_DOCK_Y, TRAY_DOCK_WIDTH, TRAY_DOCK_HEIGHT, TRAY_DOCK_RADIUS);
+
+    this.dockGraphics.lineStyle(1, 0xffffff, 0.14);
+    this.dockGraphics.strokeRoundedRect(TRAY_DOCK_X + 1, TRAY_DOCK_Y + 1, TRAY_DOCK_WIDTH - 2, TRAY_DOCK_HEIGHT - 2, TRAY_DOCK_RADIUS - 1);
+
+    // 4. 3 Recessed Piece Pedestals (Physical slots where pieces rest)
+    const pedestalSize = 110;
+    TRAY_SLOT_X_OFFSETS.forEach((slotX) => {
+      const px = slotX - pedestalSize / 2;
+      const py = TRAY_Y - pedestalSize / 2;
+
+      // Recessed groove
+      this.dockGraphics.fillStyle(emptyCellCol, 0.35);
+      this.dockGraphics.fillRoundedRect(px, py, pedestalSize, pedestalSize, 16);
+
+      this.dockGraphics.lineStyle(1.5, 0x000000, 0.35);
+      this.dockGraphics.strokeRoundedRect(px, py, pedestalSize, pedestalSize, 16);
+
+      this.dockGraphics.lineStyle(1, 0xffffff, 0.08);
+      this.dockGraphics.strokeRoundedRect(px + 1, py + 1, pedestalSize - 2, pedestalSize - 2, 15);
+    });
   }
 
   public setLocked(locked: boolean): void {
@@ -75,12 +142,12 @@ export class TrayView {
         const pieceView = new PieceView(this.scene, slotX, slotY, pieceDef);
         this.setupPieceInteraction(pieceView, i, slotX, slotY);
 
-        // Entrance scale animation
+        // Entrance scale animation with subtle bounce
         pieceView.setScale(0);
         this.scene.tweens.add({
           targets: pieceView,
           scale: TRAY_SCALE,
-          duration: 200,
+          duration: 220,
           delay: i * 60,
           ease: 'Back.easeOut'
         });
@@ -141,14 +208,33 @@ export class TrayView {
   /**
    * Calculates target grid coordinates and projects live ghost preview.
    */
+  /**
+   * Calculates target grid coordinates, projects live ghost preview,
+   * and triggers full-line impending neon anticipation highlights.
+   */
   private updateGhostPreview(pieceView: PieceView): void {
     const target = this.calculateTargetGridPosition(pieceView);
+    const pieceDef = pieceView.getDefinition();
 
     if (target) {
-      const isValid = this.boardManager.canPlacePiece(pieceView.getDefinition().cells, target.row, target.col);
-      this.boardView.drawGhostPreview(pieceView.getDefinition().cells, target.row, target.col, isValid);
+      const isValid = this.boardManager.canPlacePiece(pieceDef.cells, target.row, target.col);
+      this.boardView.drawGhostPreview(pieceDef.cells, target.row, target.col, isValid);
+
+      if (isValid) {
+        // Block Blast Live Anticipation: Highlight entire lines that will complete
+        const potential = this.boardManager.getPotentialCompletedLines(pieceDef.cells, target.row, target.col);
+        const theme = ThemeManager.getInstance().getActiveColors();
+        this.boardView.drawImpendingClearHighlight(
+          potential.rows,
+          potential.cols,
+          pieceDef.color || theme.cellFilled
+        );
+      } else {
+        this.boardView.clearImpendingClearHighlight();
+      }
     } else {
       this.boardView.clearGhostPreview();
+      this.boardView.clearImpendingClearHighlight();
     }
   }
 
@@ -160,8 +246,8 @@ export class TrayView {
     const shapeTopLeftX = pieceView.x - dims.width / 2;
     const shapeTopLeftY = pieceView.y - dims.height / 2;
 
-    const firstTileCenterX = shapeTopLeftX + 22.5;
-    const firstTileCenterY = shapeTopLeftY + 22.5;
+    const firstTileCenterX = shapeTopLeftX + CELL_SIZE / 2;
+    const firstTileCenterY = shapeTopLeftY + CELL_SIZE / 2;
 
     return this.boardManager.getGridCoordinateFromWorld(firstTileCenterX, firstTileCenterY);
   }
@@ -189,10 +275,22 @@ export class TrayView {
         duration: SNAP_DURATION,
         ease: 'Quad.easeOut',
         onComplete: () => {
-          // 3. Commit Placement to BoardManager
+          // 3. Commit Placement to BoardManager with piece's signature jewel color
           const theme = ThemeManager.getInstance().getActiveColors();
-          this.boardManager.placePiece(pieceDef.cells, target.row, target.col, theme.cellFilled);
+          const tileColor = pieceDef.color || theme.cellFilled;
+          this.boardManager.placePiece(pieceDef.cells, target.row, target.col, tileColor);
           this.boardView.updateFilledTiles();
+
+          // Calculate placed cell coordinates for placement juice
+          const placedCoords: { row: number; col: number }[] = [];
+          for (let r = 0; r < pieceDef.cells.length; r++) {
+            for (let c = 0; c < pieceDef.cells[0].length; c++) {
+              if (pieceDef.cells[r][c] === 1) {
+                placedCoords.push({ row: target.row + r, col: target.col + c });
+              }
+            }
+          }
+          this.boardView.animatePlacementJuice(placedCoords);
 
           // 4. Score points (+1 per block tile)
           this.scoreManager.addPlacementScore(pieceDef.blockCount);
@@ -204,6 +302,7 @@ export class TrayView {
           pieceView.destroy();
 
           this.boardView.clearGhostPreview();
+          this.boardView.clearImpendingClearHighlight();
           this.resetDragState();
 
           // 6. Notify placement & coordinate line clearing lifecycle
@@ -231,6 +330,7 @@ export class TrayView {
       // Invalid Placement: Spring back to tray slot
       this.audioManager.playInvalid();
       this.boardView.clearGhostPreview();
+      this.boardView.clearImpendingClearHighlight();
 
       this.scene.tweens.add({
         targets: pieceView,
@@ -255,5 +355,6 @@ export class TrayView {
 
   public destroy(): void {
     this.pieceViews.forEach((pv) => pv?.destroy());
+    this.dockContainer.destroy();
   }
 }

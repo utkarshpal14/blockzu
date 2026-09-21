@@ -4,6 +4,7 @@ import { BoardManager } from '../managers/BoardManager';
 import { ScoreManager } from '../managers/ScoreManager';
 import { AudioManager } from '../managers/AudioManager';
 import { BoardView } from '../ui/components/BoardView';
+import { ComboBanner } from '../ui/components/ComboBanner';
 import { FloatingText } from '../ui/components/FloatingText';
 
 export interface ClearEvaluationResult {
@@ -68,34 +69,23 @@ export class ClearSystem {
     const { baseScore, comboBonus, totalScore } = this.scoreManager.addLineClearScore(totalLines);
     const comboName = this.getComboName(totalLines);
 
-    // 3. Audio Triggers
+    // 3. Audio Triggers with Melodic Appreciation Chords
     this.audioManager.playLineClear(totalLines);
-    if (totalLines >= 2) {
-      this.audioManager.playCombo();
-    }
+    this.audioManager.playAppreciation(totalLines);
 
     // 4. Punchy Camera Screen Shake (100ms)
     this.triggerScreenShake(totalLines);
 
-    // 5. Show Rewarding Floating Text / Combo Badge
-    const boardCenterY = 315;
+    // 5. Show Colorful Animated Rotating Appreciation & Point Popup
+    const boardCenterY = 310;
     const boardCenterX = 225;
 
-    if (totalLines >= 2) {
-      FloatingText.show(this.scene, {
-        x: boardCenterX,
-        y: boardCenterY,
-        text: `${comboName} (+${totalScore})`,
-        isCombo: true
-      });
-    } else {
-      FloatingText.show(this.scene, {
-        x: boardCenterX,
-        y: boardCenterY,
-        text: `+${totalScore}`,
-        isCombo: false
-      });
-    }
+    ComboBanner.show(this.scene, {
+      x: boardCenterX,
+      y: boardCenterY,
+      linesCleared: totalLines,
+      scoreAwarded: totalScore
+    });
 
     // 6. Fast 200ms Line Clear Animation & Particles
     this.boardView.animateLineClears(rows, cols, () => {

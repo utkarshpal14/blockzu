@@ -1,21 +1,29 @@
 import Phaser from 'phaser';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/gameplay';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, POINTS_PER_BLOCK, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, BOARD_CARD_X, BOARD_CARD_Y } from '../constants/gameplay';
 import { ThemeManager } from '../managers/ThemeManager';
 import { ScoreManager } from '../managers/ScoreManager';
+import { SaveManager } from '../managers/SaveManager';
 import { AudioManager } from '../managers/AudioManager';
+import { StatisticsManager } from '../managers/StatisticsManager';
 import { BoardManager } from '../managers/BoardManager';
 import { PieceManager } from '../managers/PieceManager';
 import { BoardView } from '../ui/components/BoardView';
 import { TrayView } from '../ui/components/TrayView';
+import { AmbientParticles } from '../ui/components/AmbientParticles';
 import { ClearSystem } from '../systems/ClearSystem';
 import { GameFlowSystem, SessionStats } from '../systems/GameFlowSystem';
 import { FloatingText } from '../ui/components/FloatingText';
 import { PieceDefinition } from '../types/Piece';
+import { SettingsModal } from '../ui/modals/SettingsModal';
+import { AchievementManager } from '../managers/AchievementManager';
+import { MissionManager } from '../managers/MissionManager';
+import { ProgressionToast } from '../ui/components/ProgressionToast';
 
 /**
  * GAME SCENE (Core Gameplay Loop)
- * Coordinates HUD, BoardView, TrayView, ClearSystem, GameFlowSystem, and real-time lifecycle.
- * Defined in Document 02, 03, 04, 05.
+ * Block Blast layout with huge bold score header, crown best score, settings gear,
+ * 3D jewel blocks, neon line clearance auras, and "No Space Left" transition.
+ * Defined in Document 02, 03, 04, 05 & Milestone 6.5.
  */
 export class GameScene extends Phaser.Scene {
   private boardManager!: BoardManager;
@@ -42,7 +50,6 @@ export class GameScene extends Phaser.Scene {
     const height = this.scale.height || CANVAS_HEIGHT;
     const theme = ThemeManager.getInstance().getActiveColors();
     const scoreManager = ScoreManager.getInstance();
-    const audioManager = AudioManager.getInstance();
 
     // Reset session trackers
     this.sessionLinesCleared = 0;
@@ -57,20 +64,27 @@ export class GameScene extends Phaser.Scene {
 
     scoreManager.resetCurrentScore();
 
-    // Background
-    this.add.rectangle(width / 2, height / 2, width, height, Phaser.Display.Color.HexStringToColor(theme.background).color);
+    // 1. Dynamic Background with Gradient Depth (Cohesive Royal Sapphire to Deep Navy)
+    const bgGraphics = this.add.graphics();
+    const bgTop = Phaser.Display.Color.HexStringToColor(theme.background).color; // 0x223BBE
+    const bgBottom = 0x172554; // Deep Royal Navy (Interconnected)
+    bgGraphics.fillGradientStyle(bgTop, bgTop, bgBottom, bgBottom, 1);
+    bgGraphics.fillRect(0, 0, width, height);
 
-    // Top HUD Bar
+    // 2. Ambient Multi-Color Drifting Particles
+    new AmbientParticles(this, 20, true);
+
+    // 3. Top HUD (Crown Best | Huge Score | Settings Gear)
     this.createHUD(width, theme);
 
-    // 8x8 Board View
+    // 4. 8x8 Board View (3D Jewel Blocks + Recessed Pockets)
     this.boardView = new BoardView(this);
 
-    // Systems
+    // 5. Systems
     this.clearSystem = new ClearSystem(this, this.boardView);
     this.gameFlowSystem = new GameFlowSystem(this);
 
-    // 3-Piece Tray View
+    // 6. 3-Piece Glassmorphic Tray Dock View
     this.trayView = new TrayView(
       this,
       this.boardView,
@@ -79,16 +93,15 @@ export class GameScene extends Phaser.Scene {
       }
     );
 
-    // Home / Menu button
-    const homeBtn = this.add.text(40, 48, '←', {
-      fontFamily: 'Poppins, sans-serif',
-      fontSize: '28px',
-      color: theme.textPrimary
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    homeBtn.on('pointerdown', () => {
-      audioManager.playButtonClick();
-      this.scene.start('MainMenuScene');
+    // 7. 30-Second Gameplay Autosave Loop
+    this.time.addEvent({
+      delay: 30000,
+      loop: true,
+      callback: () => {
+        const saveManager = SaveManager.getInstance();
+        saveManager.flushSessionPlayTime();
+        saveManager.save();
+      }
     });
   }
 
@@ -123,17 +136,35 @@ export class GameScene extends Phaser.Scene {
    * 1. Lock Input
    * 2. Increment stats & spawn placement score floater (+N)
    * 3. Clear lines via ClearSystem (flash 50ms -> shrink 100ms -> fade 50ms)
-   * 4. Trigger tray refill if empty
-   * 5. Run Game Over Solver on the updated & cleared board state
-   * 6. Unlock Input if moves exist OR trigger Game Over if 0 moves exist!
+   * 4. Record best single move score
+   * 5. Trigger tray refill if empty
+   * 6. Run Game Over Solver: If 0 moves, show "NO SPACE LEFT!" warning before Game Over!
    */
   private handlePiecePlaced(piece: PieceDefinition, row: number, col: number, onComplete: () => void) {
     // 1. Lock Input
     this.trayView.setLocked(true);
     this.sessionBlocksPlaced += piece.blockCount;
 
+    const achievementManager = AchievementManager.getInstance();
+    const missionManager = MissionManager.getInstance();
+    const saveManager = SaveManager.getInstance();
+
+    // Subtle snap haptic vibration
+    AudioManager.getInstance().vibrate(18);
+
+    // Progression: Block placement
+    if (achievementManager.updateProgress('first_placement', 1)) {
+      ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: 'First Placement', rewardCoins: 50, icon: '🏆' });
+    }
+    const newlyCompletedMissions = missionManager.reportProgress('blocks', piece.blockCount, true);
+    newlyCompletedMissions.forEach((m) => {
+      ProgressionToast.show(this, { title: 'MISSION COMPLETE!', subtitle: m.title, rewardCoins: m.rewardCoins, icon: '🎯' });
+    });
+
     // 2. Update HUD
     this.updateHUD();
+
+    const placementPoints = piece.blockCount * POINTS_PER_BLOCK;
 
     // 3. Score popup for base block placement (+1, +4, +9)
     const cellPos = this.boardManager.getCellCenter(row, col);
@@ -146,10 +177,82 @@ export class GameScene extends Phaser.Scene {
 
     // 4. Evaluate Line Clears & Combos
     this.clearSystem.evaluateAndClearLines((result) => {
+      const moveScore = placementPoints + (result.scoreAwarded || 0);
+      StatisticsManager.getInstance().recordMoveScore(moveScore);
+
+      const currentScore = ScoreManager.getInstance().getCurrentScore();
+
+      // Check Score Achievements & Missions
+      ['score_100', 'score_500', 'score_1000', 'score_2500', 'score_5000'].forEach((achId) => {
+        const def = achievementManager.getAchievementDefinitions().find((d) => d.id === achId);
+        if (def && currentScore >= def.target) {
+          if (achievementManager.updateProgress(achId, currentScore, false)) {
+            ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: def.title, rewardCoins: def.rewardCoins, icon: '🏆' });
+          }
+        }
+      });
+      const scoreMissions = missionManager.reportProgress('score', currentScore, false);
+      scoreMissions.forEach((m) => {
+        ProgressionToast.show(this, { title: 'MISSION COMPLETE!', subtitle: m.title, rewardCoins: m.rewardCoins, icon: '🎯' });
+      });
+
       if (result.hasCleared) {
         this.sessionLinesCleared += result.linesCleared;
         this.sessionMaxCombo = Math.max(this.sessionMaxCombo, result.linesCleared);
         this.updateHUD();
+
+        // Economy: In-game Coin Earnings
+        let earnedCoins = result.linesCleared * 2; // +2 per line
+        if (result.linesCleared === 2) earnedCoins += 5; // +5 for x2 combo
+        else if (result.linesCleared >= 3) earnedCoins += 10; // +10 for x3+ combo
+
+        saveManager.addCoins(earnedCoins);
+
+        // Spawn Coin Floater
+        FloatingText.show(this, {
+          x: cellPos.x,
+          y: cellPos.y - 32,
+          text: `+${earnedCoins} 🪙`,
+          fontSize: '18px',
+          color: '#FDE047'
+        });
+
+        // Progression: Line Clear Achievements & Missions
+        ['clear_10_lines', 'clear_50_lines', 'clear_100_lines', 'clear_500_lines'].forEach((achId) => {
+          if (achievementManager.updateProgress(achId, result.linesCleared, true)) {
+            const def = achievementManager.getAchievementDefinitions().find((d) => d.id === achId);
+            if (def) {
+              ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: def.title, rewardCoins: def.rewardCoins, icon: '🏆' });
+            }
+          }
+        });
+        const lineMissions = missionManager.reportProgress('lines', result.linesCleared, true);
+        lineMissions.forEach((m) => {
+          ProgressionToast.show(this, { title: 'MISSION COMPLETE!', subtitle: m.title, rewardCoins: m.rewardCoins, icon: '🎯' });
+        });
+
+        // Progression: Combos
+        if (result.linesCleared >= 2) {
+          if (achievementManager.updateProgress('first_combo', 1)) {
+            ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: 'First Combo', rewardCoins: 100, icon: '⚡' });
+          }
+          ['combo_10', 'combo_50', 'combo_100'].forEach((achId) => {
+            if (achievementManager.updateProgress(achId, 1, true)) {
+              const def = achievementManager.getAchievementDefinitions().find((d) => d.id === achId);
+              if (def) {
+                ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: def.title, rewardCoins: def.rewardCoins, icon: '⚡' });
+              }
+            }
+          });
+          const comboMissions = missionManager.reportProgress('combos', 1, true);
+          comboMissions.forEach((m) => {
+            ProgressionToast.show(this, { title: 'MISSION COMPLETE!', subtitle: m.title, rewardCoins: m.rewardCoins, icon: '🎯' });
+          });
+
+          AudioManager.getInstance().vibrate([30, 40, 50]);
+        } else {
+          AudioManager.getInstance().vibrate(35);
+        }
       }
 
       // 5. Trigger Tray Refill (if tray was emptied by this placement)
@@ -159,7 +262,7 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(100, () => {
         if (this.gameFlowSystem.isGameOver()) {
           this.trayView.setLocked(true);
-          this.gameFlowSystem.triggerGameOver(this.getSessionStats());
+          this.showNoSpaceWarning();
         } else {
           // Moves available: Unlock input and continue playing!
           this.trayView.setLocked(false);
@@ -168,55 +271,153 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private updateHUD() {
-    const scoreManager = ScoreManager.getInstance();
-    this.scoreText.setText(`${scoreManager.getCurrentScore()}`);
-    this.bestScoreText.setText(`${scoreManager.getBestScore()}`);
+  /**
+   * Dramatic "NO SPACE LEFT!" alert banner before transitioning to Game Over.
+   */
+  private showNoSpaceWarning() {
+    const width = this.scale.width || CANVAS_WIDTH;
+    const bannerContainer = this.add.container(width / 2, BOARD_CARD_Y + BOARD_CARD_HEIGHT / 2).setDepth(90);
+
+    // Dark Board Overlay
+    const overlay = this.add.graphics();
+    overlay.fillStyle(0x000000, 0.65);
+    overlay.fillRoundedRect(BOARD_CARD_X, BOARD_CARD_Y, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, 22);
+
+    // Warning Card
+    const card = this.add.graphics();
+    card.fillStyle(0x1e1b4b, 0.95);
+    card.lineStyle(2.5, 0xef4444, 1);
+    card.fillRoundedRect(-140, -36, 280, 72, 18);
+    card.strokeRoundedRect(-140, -36, 280, 72, 18);
+    bannerContainer.add(card);
+
+    const title = this.add.text(0, -8, 'NO SPACE LEFT!', {
+      fontFamily: 'Poppins, sans-serif',
+      fontSize: '20px',
+      fontStyle: 'bold',
+      color: '#EF4444'
+    }).setOrigin(0.5);
+    bannerContainer.add(title);
+
+    const sub = this.add.text(0, 16, 'Out of valid moves', {
+      fontFamily: 'Poppins, sans-serif',
+      fontSize: '12px',
+      color: '#94A3B8'
+    }).setOrigin(0.5);
+    bannerContainer.add(sub);
+
+    bannerContainer.setScale(0.3);
+    bannerContainer.setAlpha(0);
+
+    this.tweens.add({
+      targets: bannerContainer,
+      scale: 1.05,
+      alpha: 1,
+      duration: 200,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.tweens.add({
+          targets: bannerContainer,
+          scale: 1.0,
+          duration: 100
+        });
+      }
+    });
+
+    // Hold for 1.1s, then trigger game over
+    this.time.delayedCall(1100, () => {
+      this.gameFlowSystem.triggerGameOver(this.getSessionStats(), () => {
+        overlay.destroy();
+        bannerContainer.destroy();
+      });
+    });
   }
 
-  private createHUD(width: number, theme: any) {
+  private updateHUD() {
     const scoreManager = ScoreManager.getInstance();
+    const saveManager = SaveManager.getInstance();
+    const currentScore = scoreManager.getCurrentScore();
 
-    // Score Card
-    const scoreCard = this.add.graphics();
-    scoreCard.fillStyle(Phaser.Display.Color.HexStringToColor(theme.cardBackground).color, 0.95);
-    scoreCard.lineStyle(1.5, Phaser.Display.Color.HexStringToColor(theme.cellEmpty).color, 0.6);
-    scoreCard.fillRoundedRect(width / 2 - 130, 24, 120, 56, 12);
-    scoreCard.strokeRoundedRect(width / 2 - 130, 24, 120, 56, 12);
+    this.scoreText.setText(`${currentScore}`);
+    this.bestScoreText.setText(`${saveManager.getBestScore().toLocaleString()}`);
 
-    this.add.text(width / 2 - 70, 38, 'SCORE', {
+    // Score pop animation
+    this.tweens.add({
+      targets: this.scoreText,
+      scale: 1.18,
+      duration: 80,
+      yoyo: true,
+      ease: 'Quad.easeOut'
+    });
+  }
+
+  /**
+   * Block Blast In-Game HUD:
+   * [ 👑 Best ]             [ ⚙️ Settings ]
+   *               [ 389 ]
+   */
+  private createHUD(width: number, _theme: any) {
+    const scoreManager = ScoreManager.getInstance();
+    const saveManager = SaveManager.getInstance();
+    const audioManager = AudioManager.getInstance();
+
+    const topBarY = 32;
+
+    // 1. Crown Best Score Pill (Top-Left)
+    const crownContainer = this.add.container(65, topBarY);
+    const crownBg = this.add.graphics();
+    crownBg.fillStyle(0x0F172A, 0.85);
+    crownBg.lineStyle(1.5, 0xF59E0B, 0.85);
+    crownBg.fillRoundedRect(-52, -15, 104, 30, 15);
+    crownBg.strokeRoundedRect(-52, -15, 104, 30, 15);
+    crownContainer.add(crownBg);
+
+    const crownIcon = this.add.text(-38, 0, '👑', {
+      fontSize: '15px'
+    }).setOrigin(0, 0.5);
+    crownContainer.add(crownIcon);
+
+    this.bestScoreText = this.add.text(-16, 0, `${saveManager.getBestScore().toLocaleString()}`, {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '11px',
+      fontSize: '14px',
       fontStyle: 'bold',
-      color: theme.textSecondary
+      color: '#FDE047'
+    }).setOrigin(0, 0.5);
+    crownContainer.add(this.bestScoreText);
+
+    // 2. Settings Gear Pill (Top-Right)
+    const settingsBtn = this.add.container(width - 34, topBarY);
+    const gearBg = this.add.graphics();
+    gearBg.fillStyle(0x0F172A, 0.85);
+    gearBg.lineStyle(1.5, 0x38BDF8, 0.85);
+    gearBg.fillCircle(0, 0, 17);
+    gearBg.strokeCircle(0, 0, 17);
+    settingsBtn.add(gearBg);
+
+    const gearText = this.add.text(0, 0, '⚙️', {
+      fontSize: '18px'
     }).setOrigin(0.5);
+    settingsBtn.add(gearText);
 
-    this.scoreText = this.add.text(width / 2 - 70, 60, `${scoreManager.getCurrentScore()}`, {
+    settingsBtn.setSize(36, 36);
+    settingsBtn.setInteractive({ useHandCursor: true });
+
+    settingsBtn.on('pointerdown', () => {
+      audioManager.playButtonClick();
+      this.trayView.setLocked(true);
+      new SettingsModal(this, () => {
+        this.trayView.setLocked(false);
+      }, () => {
+        this.scene.restart();
+      });
+    });
+
+    // 3. Huge Bold Clean Score Number (Center Top right above the board)
+    this.scoreText = this.add.text(width / 2, 60, `${scoreManager.getCurrentScore()}`, {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '20px',
+      fontSize: '44px',
       fontStyle: 'bold',
-      color: theme.textPrimary
-    }).setOrigin(0.5);
-
-    // Best Score Card
-    const bestCard = this.add.graphics();
-    bestCard.fillStyle(Phaser.Display.Color.HexStringToColor(theme.cardBackground).color, 0.95);
-    bestCard.lineStyle(1.5, Phaser.Display.Color.HexStringToColor(theme.cellEmpty).color, 0.6);
-    bestCard.fillRoundedRect(width / 2 + 10, 24, 120, 56, 12);
-    bestCard.strokeRoundedRect(width / 2 + 10, 24, 120, 56, 12);
-
-    this.add.text(width / 2 + 70, 38, 'BEST', {
-      fontFamily: 'Poppins, sans-serif',
-      fontSize: '11px',
-      fontStyle: 'bold',
-      color: theme.textSecondary
-    }).setOrigin(0.5);
-
-    this.bestScoreText = this.add.text(width / 2 + 70, 60, `${scoreManager.getBestScore()}`, {
-      fontFamily: 'Poppins, sans-serif',
-      fontSize: '20px',
-      fontStyle: 'bold',
-      color: theme.textPrimary
+      color: '#FFFFFF'
     }).setOrigin(0.5);
   }
 }

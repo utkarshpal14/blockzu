@@ -5,6 +5,7 @@
 
 export interface PlayerData {
   version: string;
+  metadata?: SaveMetadata;
   profile: ProfileData;
   statistics: StatisticsData;
   achievements: AchievementData[];
@@ -12,6 +13,19 @@ export interface PlayerData {
   themes: ThemeData;
   economy: EconomyData;
   settings: SettingsData;
+  dailyReward?: DailyRewardData;
+}
+
+export interface SaveMetadata {
+  version: number;
+  createdAt: number;
+  updatedAt: number;
+  totalPlayTime: number; // in seconds
+}
+
+export interface DailyRewardData {
+  lastClaimTime: number;
+  currentStreak: number;
 }
 
 export interface ProfileData {
@@ -27,6 +41,7 @@ export interface StatisticsData {
   blocksPlaced: number;
   longestCombo: number;
   averageScore: number;
+  bestSingleMoveScore: number;
 }
 
 export interface AchievementData {

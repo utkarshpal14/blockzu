@@ -12,118 +12,124 @@ export const THEME_CATALOG: Theme[] = [
     coinCost: 0,
     isSecret: false,
     colors: {
-      background: '#F8FAFC',
-      board: '#E2E8F0',
-      cellEmpty: '#CBD5E1',
+      background: '#223BBE',
+      board: '#172554',
+      cellEmpty: '#1E293B',
       cellFilled: '#3B82F6',
-      accent: '#2563EB',
-      textPrimary: '#0F172A',
-      textSecondary: '#64748B',
-      cardBackground: '#FFFFFF'
+      accent: '#38BDF8',
+      textPrimary: '#FFFFFF',
+      textSecondary: '#93C5FD',
+      cardBackground: '#1E293B',
+      glowColor: '#38BDF8'
     }
   },
   {
     id: 'dark',
     name: 'Dark',
-    unlockScore: 500,
+    unlockScore: 0,
     coinCost: 500,
     isSecret: false,
     colors: {
-      background: '#0F172A',
-      board: '#1E293B',
-      cellEmpty: '#334155',
+      background: '#090B10',
+      board: '#141824',
+      cellEmpty: '#1F2438',
       cellFilled: '#6366F1',
       accent: '#818CF8',
       textPrimary: '#F8FAFC',
       textSecondary: '#94A3B8',
-      cardBackground: '#1E293B'
+      cardBackground: '#111522',
+      glowColor: '#6366F1'
     }
   },
   {
     id: 'neon',
     name: 'Neon',
-    unlockScore: 1500,
+    unlockScore: 0,
     coinCost: 1000,
     isSecret: false,
     colors: {
-      background: '#0A0A0A',
-      board: '#111111',
-      cellEmpty: '#222222',
+      background: '#08080C',
+      board: '#12121A',
+      cellEmpty: '#1C1C28',
       cellFilled: '#00F0FF',
-      accent: '#00F0FF',
-      accentSecondary: '#FF2E9F',
+      accent: '#FF007F',
+      accentSecondary: '#FF007F',
       textPrimary: '#FFFFFF',
       textSecondary: '#00F0FF',
-      cardBackground: '#161616',
+      cardBackground: '#111118',
       glowColor: '#00F0FF'
     }
   },
   {
     id: 'nature',
     name: 'Nature',
-    unlockScore: 3000,
+    unlockScore: 0,
     coinCost: 1500,
     isSecret: false,
     colors: {
-      background: '#F0FDF4',
-      board: '#DCFCE7',
-      cellEmpty: '#BBF7D0',
-      cellFilled: '#16A34A',
-      accent: '#15803D',
-      textPrimary: '#14532D',
-      textSecondary: '#166534',
-      cardBackground: '#FFFFFF'
+      background: '#061C14',
+      board: '#0C2E22',
+      cellEmpty: '#144232',
+      cellFilled: '#10B981',
+      accent: '#34D399',
+      textPrimary: '#ECFDF5',
+      textSecondary: '#6EE7B7',
+      cardBackground: '#092319',
+      glowColor: '#10B981'
     }
   },
   {
     id: 'ocean',
     name: 'Ocean',
-    unlockScore: 4000,
+    unlockScore: 0,
     coinCost: 2000,
     isSecret: false,
     colors: {
-      background: '#ECFEFF',
-      board: '#CFFAFE',
-      cellEmpty: '#A5F3FC',
-      cellFilled: '#0891B2',
-      accent: '#0E7490',
-      textPrimary: '#164E63',
-      textSecondary: '#155E75',
-      cardBackground: '#FFFFFF'
+      background: '#061727',
+      board: '#0B253E',
+      cellEmpty: '#12385C',
+      cellFilled: '#06B6D4',
+      accent: '#38BDF8',
+      textPrimary: '#ECFEFF',
+      textSecondary: '#7DD3FC',
+      cardBackground: '#081E33',
+      glowColor: '#06B6D4'
     }
   },
   {
     id: 'sunset',
     name: 'Sunset',
-    unlockScore: 5000,
+    unlockScore: 0,
     coinCost: 2500,
     isSecret: false,
     colors: {
-      background: '#FFF7ED',
-      board: '#FFEDD5',
-      cellEmpty: '#FED7AA',
+      background: '#1A0B0B',
+      board: '#2E1313',
+      cellEmpty: '#451D1D',
       cellFilled: '#F97316',
-      accent: '#EA580C',
-      textPrimary: '#7C2D12',
-      textSecondary: '#9A3412',
-      cardBackground: '#FFFFFF'
+      accent: '#FB923C',
+      textPrimary: '#FFF7ED',
+      textSecondary: '#FDBA74',
+      cardBackground: '#220E0E',
+      glowColor: '#F97316'
     }
   },
   {
     id: 'galaxy',
     name: 'Galaxy',
-    unlockScore: 7500,
+    unlockScore: 0,
     coinCost: 3000,
     isSecret: false,
     colors: {
-      background: '#1E1B4B',
-      board: '#312E81',
-      cellEmpty: '#4338CA',
-      cellFilled: '#A78BFA',
-      accent: '#8B5CF6',
-      textPrimary: '#EDE9FE',
-      textSecondary: '#C4B5FD',
-      cardBackground: '#2E2A72'
+      background: '#0F091E',
+      board: '#1E1238',
+      cellEmpty: '#2D1B54',
+      cellFilled: '#A855F7',
+      accent: '#C084FC',
+      textPrimary: '#FAF5FF',
+      textSecondary: '#D8B4FE',
+      cardBackground: '#170E2D',
+      glowColor: '#A855F7'
     }
   },
   {
@@ -133,15 +139,15 @@ export const THEME_CATALOG: Theme[] = [
     coinCost: 0,
     isSecret: true,
     colors: {
-      background: '#1C1408',
-      board: '#3D2E0A',
-      cellEmpty: '#5C440F',
-      cellFilled: '#FFD700',
-      accent: '#FFD700',
-      textPrimary: '#FFFDF0',
-      textSecondary: '#FDE047',
-      cardBackground: '#2C2008',
-      glowColor: '#FFD700'
+      background: '#140D04',
+      board: '#291B08',
+      cellEmpty: '#422C0C',
+      cellFilled: '#F59E0B',
+      accent: '#FCD34D',
+      textPrimary: '#FFFBEB',
+      textSecondary: '#FDE68A',
+      cardBackground: '#1E1406',
+      glowColor: '#F59E0B'
     }
   }
 ];

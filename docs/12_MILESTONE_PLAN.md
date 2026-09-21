@@ -360,7 +360,7 @@ Portrait Layout Stable
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---
@@ -402,7 +402,7 @@ Themes Unlock Correctly
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---
@@ -411,30 +411,31 @@ Themes Unlock Correctly
 
 ## Goal
 
-Persist player data.
+Persist player data with integrity validation, backup recovery, metadata tracking, and migration support.
 
 ### Deliverables
 
 ```text
 Save Manager
-
-Load Manager
-
-Reset Progress
-
-Statistics Persistence
-
-Migration Support
+Storage Service
+Schema Validation
+Backup Recovery
+Migration System
+30s Gameplay Autosave
+Lifecycle Hooks (beforeunload, visibilitychange)
+Save Metadata (createdAt, updatedAt, totalPlayTime)
+Protected Reset Progress Flow
 ```
 
 ### Acceptance Criteria
 
 ```text
 Progress Survives Restart
-
 Data Loads Correctly
-
+Backup Recovers Corrupted Saves
+Autosave Triggers During Gameplay
 Reset Works Correctly
+Metadata Tracks Playtime & Timestamps
 ```
 
 ### Estimated Time
@@ -446,7 +447,7 @@ Reset Works Correctly
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---

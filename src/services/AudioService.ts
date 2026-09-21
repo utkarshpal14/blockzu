@@ -8,6 +8,8 @@ export class AudioService {
   private ctx: AudioContext | null = null;
   private soundEnabled: boolean = true;
   private musicEnabled: boolean = true;
+  private vibrationEnabled: boolean = true;
+  private musicTimer: number | null = null;
 
   private constructor() {}
 
@@ -36,6 +38,64 @@ export class AudioService {
 
   public setMusicEnabled(enabled: boolean) {
     this.musicEnabled = enabled;
+    if (enabled) {
+      this.startAmbientMusic();
+    } else {
+      this.stopAmbientMusic();
+    }
+  }
+
+  public setVibrationEnabled(enabled: boolean) {
+    this.vibrationEnabled = enabled;
+  }
+
+  public vibrate(pattern: number | number[] = 15) {
+    if (!this.vibrationEnabled) return;
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(pattern);
+      } catch (e) {
+        // Silently ignore if blocked
+      }
+    }
+  }
+
+  private startAmbientMusic() {
+    if (this.musicTimer || !this.musicEnabled) return;
+    this.musicTimer = window.setInterval(() => {
+      if (!this.musicEnabled) return;
+      this.playAmbientChime();
+    }, 4500);
+  }
+
+  private stopAmbientMusic() {
+    if (this.musicTimer) {
+      clearInterval(this.musicTimer);
+      this.musicTimer = null;
+    }
+  }
+
+  private playAmbientChime() {
+    if (!this.musicEnabled) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const notes = [261.63, 329.63, 392.00, 523.25];
+    const note = notes[Math.floor(Math.random() * notes.length)];
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(note, this.ctx.currentTime);
+
+    gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.2);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + 1.2);
   }
 
   /**
@@ -140,32 +200,49 @@ export class AudioService {
   }
 
   /**
-   * Rewarding chord for multi-line combos.
+   * Melodic appreciation chords for line clears & combos.
    */
-  public playComboSound() {
+  public playAppreciationSound(level: number = 1) {
     if (!this.soundEnabled) return;
     this.initContext();
     if (!this.ctx) return;
 
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C Major arpeggio
+    let notes: number[];
+    if (level === 1) {
+      notes = [523.25, 783.99]; // C5 -> G5 (Crisp chime)
+    } else if (level === 2) {
+      notes = [523.25, 659.25, 783.99]; // C Major arpeggio
+    } else if (level === 3) {
+      notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6 (Full chord)
+    } else {
+      notes = [392.00, 523.25, 659.25, 783.99, 1046.5, 1318.5]; // Grand triumphant fanfare
+    }
+
     notes.forEach((freq, idx) => {
       if (!this.ctx) return;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      const startTime = this.ctx.currentTime + idx * 0.05;
+      const startTime = this.ctx.currentTime + idx * 0.055;
 
-      osc.type = 'sine';
+      osc.type = 'triangle';
       osc.frequency.setValueAtTime(freq, startTime);
 
-      gain.gain.setValueAtTime(0.25, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.25);
+      gain.gain.setValueAtTime(0.28, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start(startTime);
-      osc.stop(startTime + 0.25);
+      osc.stop(startTime + 0.35);
     });
+  }
+
+  /**
+   * Rewarding chord for multi-line combos.
+   */
+  public playComboSound() {
+    this.playAppreciationSound(2);
   }
 
   /**

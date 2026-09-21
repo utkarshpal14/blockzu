@@ -27,6 +27,19 @@ export class AudioManager {
     const settings = this.saveManager.getSettings();
     this.audioService.setSoundEnabled(settings.soundEnabled);
     this.audioService.setMusicEnabled(settings.musicEnabled);
+    this.audioService.setVibrationEnabled(settings.vibrationEnabled);
+  }
+
+  public isSoundEnabled(): boolean {
+    return this.saveManager.getSettings().soundEnabled;
+  }
+
+  public isMusicEnabled(): boolean {
+    return this.saveManager.getSettings().musicEnabled;
+  }
+
+  public isVibrationEnabled(): boolean {
+    return this.saveManager.getSettings().vibrationEnabled;
   }
 
   public toggleSound(): boolean {
@@ -45,6 +58,21 @@ export class AudioManager {
     return nextState;
   }
 
+  public toggleVibration(): boolean {
+    const settings = this.saveManager.getSettings();
+    const nextState = !settings.vibrationEnabled;
+    this.saveManager.updateSettings({ vibrationEnabled: nextState });
+    this.audioService.setVibrationEnabled(nextState);
+    if (nextState) {
+      this.vibrate(20);
+    }
+    return nextState;
+  }
+
+  public vibrate(pattern: number | number[] = 15) {
+    this.audioService.vibrate(pattern);
+  }
+
   public playPickup() {
     this.audioService.playPickupSound();
   }
@@ -59,6 +87,10 @@ export class AudioManager {
 
   public playLineClear(comboCount: number = 1) {
     this.audioService.playLineClearSound(comboCount);
+  }
+
+  public playAppreciation(level: number = 1) {
+    this.audioService.playAppreciationSound(level);
   }
 
   public playCombo() {
