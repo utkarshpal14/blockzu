@@ -1,0 +1,59 @@
+/**
+ * CANONICAL SAVE SYSTEM DATA INTERFACES
+ * Single Source of Truth as defined in Document 07 (Save System).
+ */
+
+export interface PlayerData {
+  version: string;
+  profile: ProfileData;
+  statistics: StatisticsData;
+  achievements: AchievementData[];
+  missions: MissionData[];
+  themes: ThemeData;
+  economy: EconomyData;
+  settings: SettingsData;
+}
+
+export interface ProfileData {
+  bestScore: number;
+  totalGamesPlayed: number;
+}
+
+export interface StatisticsData {
+  highestScore: number;
+  totalScore: number;
+  gamesPlayed: number;
+  linesCleared: number;
+  blocksPlaced: number;
+  longestCombo: number;
+  averageScore: number;
+}
+
+export interface AchievementData {
+  id: string;
+  progress: number;
+  completed: boolean;
+  claimed: boolean;
+}
+
+export interface MissionData {
+  id: string;
+  progress: number;
+  target: number;
+  claimed: boolean;
+}
+
+export interface ThemeData {
+  activeTheme: string;
+  unlockedThemes: string[];
+}
+
+export interface EconomyData {
+  coins: number;
+}
+
+export interface SettingsData {
+  soundEnabled: boolean;
+  musicEnabled: boolean;
+  vibrationEnabled: boolean;
+}

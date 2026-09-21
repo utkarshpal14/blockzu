@@ -1,11 +1,15 @@
-import Phaser from "phaser";
+import Phaser from 'phaser';
 
+/**
+ * BOOT SCENE
+ * Initializes engine configurations and routes to LoadingScene.
+ */
 export class BootScene extends Phaser.Scene {
   constructor() {
-    super("BootScene");
+    super('BootScene');
   }
 
   create() {
-    this.scene.start("PreloadScene");
+    this.scene.start('LoadingScene');
   }
 }
