@@ -27,6 +27,10 @@ export class ScoreManager {
     this.currentScore = 0;
   }
 
+  public setScore(score: number): void {
+    this.currentScore = Math.max(0, Math.floor(score));
+  }
+
   public getCurrentScore(): number {
     return this.currentScore;
   }

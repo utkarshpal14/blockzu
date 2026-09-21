@@ -13,7 +13,9 @@ export const DEFAULT_PLAYER_DATA: PlayerData = {
     version: 1,
     createdAt: Date.now(),
     updatedAt: Date.now(),
-    totalPlayTime: 0
+    totalPlayTime: 0,
+    totalCoinsEarned: 0,
+    adsWatched: 0
   },
   profile: {
     bestScore: 0,
@@ -46,5 +48,11 @@ export const DEFAULT_PLAYER_DATA: PlayerData = {
   dailyReward: {
     lastClaimTime: 0,
     currentStreak: 0
+  },
+  adState: {
+    lastRewardedDate: '',
+    rewardedAdsWatchedToday: 0,
+    lastInterstitialTime: 0,
+    matchesSinceLastInterstitial: 0
   }
 };

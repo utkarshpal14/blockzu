@@ -27,7 +27,7 @@ export const THEME_CATALOG: Theme[] = [
     id: 'dark',
     name: 'Dark',
     unlockScore: 0,
-    coinCost: 500,
+    coinCost: 1400,
     isSecret: false,
     colors: {
       background: '#090B10',
@@ -45,7 +45,7 @@ export const THEME_CATALOG: Theme[] = [
     id: 'neon',
     name: 'Neon',
     unlockScore: 0,
-    coinCost: 1000,
+    coinCost: 3000,
     isSecret: false,
     colors: {
       background: '#08080C',
@@ -64,7 +64,7 @@ export const THEME_CATALOG: Theme[] = [
     id: 'nature',
     name: 'Nature',
     unlockScore: 0,
-    coinCost: 1500,
+    coinCost: 6500,
     isSecret: false,
     colors: {
       background: '#061C14',
@@ -82,7 +82,7 @@ export const THEME_CATALOG: Theme[] = [
     id: 'ocean',
     name: 'Ocean',
     unlockScore: 0,
-    coinCost: 2000,
+    coinCost: 11500,
     isSecret: false,
     colors: {
       background: '#061727',
@@ -100,7 +100,7 @@ export const THEME_CATALOG: Theme[] = [
     id: 'sunset',
     name: 'Sunset',
     unlockScore: 0,
-    coinCost: 2500,
+    coinCost: 20000,
     isSecret: false,
     colors: {
       background: '#1A0B0B',
@@ -118,7 +118,7 @@ export const THEME_CATALOG: Theme[] = [
     id: 'galaxy',
     name: 'Galaxy',
     unlockScore: 0,
-    coinCost: 3000,
+    coinCost: 27000,
     isSecret: false,
     colors: {
       background: '#0F091E',

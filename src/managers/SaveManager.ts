@@ -1,10 +1,10 @@
 import { StorageService } from '../services/StorageService';
-import { PlayerData, SaveMetadata, SettingsData, ThemeData } from '../types/PlayerData';
+import { PlayerData, SaveMetadata, SettingsData, ThemeData, AdStateData } from '../types/PlayerData';
 
 /**
  * SAVE MANAGER
- * Manages player profile, high scores, coins, settings, metadata, and stats persistence.
- * Canonical model defined in Document 07.
+ * Manages player profile, high scores, coins, settings, metadata, ad state, and stats persistence.
+ * Canonical model defined in Document 07 & Milestone 9.
  */
 export class SaveManager {
   private static instance: SaveManager;
@@ -63,7 +63,9 @@ export class SaveManager {
         version: 1,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        totalPlayTime: 0
+        totalPlayTime: 0,
+        totalCoinsEarned: this.data.economy?.coins || 0,
+        adsWatched: 0
       };
     }
     return this.data.metadata;
@@ -73,6 +75,12 @@ export class SaveManager {
     const meta = this.getMetadata();
     meta.totalPlayTime += Math.max(0, Math.floor(seconds));
     return meta.totalPlayTime;
+  }
+
+  public incrementAdsWatched() {
+    const meta = this.getMetadata();
+    meta.adsWatched += 1;
+    this.save();
   }
 
   public flushSessionPlayTime() {
@@ -106,7 +114,13 @@ export class SaveManager {
   }
 
   public addCoins(amount: number): number {
-    this.data.economy.coins = Math.max(0, Math.min(this.data.economy.coins + amount, 99999));
+    const validAmount = Math.max(0, Math.floor(amount));
+    this.data.economy.coins = Math.min(this.data.economy.coins + validAmount, 99999);
+    
+    // Track lifetime coins earned
+    const meta = this.getMetadata();
+    meta.totalCoinsEarned += validAmount;
+    
     this.save();
     return this.data.economy.coins;
   }
@@ -118,6 +132,67 @@ export class SaveManager {
       return true;
     }
     return false;
+  }
+
+  // --- Ad State & Monetization Rules (Document 06) ---
+  public getAdState(): AdStateData {
+    if (!this.data.adState) {
+      this.data.adState = {
+        lastRewardedDate: '',
+        rewardedAdsWatchedToday: 0,
+        lastInterstitialTime: 0,
+        matchesSinceLastInterstitial: 0
+      };
+    }
+    // Check if new day
+    const today = new Date().toISOString().split('T')[0];
+    if (this.data.adState.lastRewardedDate !== today) {
+      this.data.adState.lastRewardedDate = today;
+      this.data.adState.rewardedAdsWatchedToday = 0;
+    }
+    return this.data.adState;
+  }
+
+  public getRemainingRewardedAdsToday(): number {
+    const adState = this.getAdState();
+    return Math.max(0, 5 - adState.rewardedAdsWatchedToday);
+  }
+
+  public canWatchRewardedAd(): boolean {
+    return this.getRemainingRewardedAdsToday() > 0;
+  }
+
+  public recordRewardedAdWatched(): number {
+    const adState = this.getAdState();
+    adState.rewardedAdsWatchedToday += 1;
+    this.incrementAdsWatched();
+    this.save();
+    return this.getRemainingRewardedAdsToday();
+  }
+
+  /**
+   * Called on Game Over.
+   * Interstitial triggers on every 4th match AND >= 3 minutes (180s) cooldown.
+   */
+  public recordMatchFinished(): boolean {
+    const adState = this.getAdState();
+    adState.matchesSinceLastInterstitial += 1;
+    this.save();
+
+    const now = Date.now();
+    const cooldownMs = 3 * 60 * 1000; // 3 minutes
+    const isFourthMatch = adState.matchesSinceLastInterstitial >= 4;
+    const cooldownPassed = now - adState.lastInterstitialTime >= cooldownMs;
+
+    return isFourthMatch && cooldownPassed;
+  }
+
+  public recordInterstitialShown() {
+    const adState = this.getAdState();
+    adState.lastInterstitialTime = Date.now();
+    adState.matchesSinceLastInterstitial = 0;
+    this.incrementAdsWatched();
+    this.save();
   }
 
   // --- Settings ---

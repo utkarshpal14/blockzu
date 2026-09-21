@@ -59,7 +59,9 @@ export class StorageService {
           version: 1,
           createdAt: Date.now(),
           updatedAt: Date.now(),
-          totalPlayTime: 0
+          totalPlayTime: 0,
+          totalCoinsEarned: data.economy?.coins || 0,
+          adsWatched: 0
         };
       }
 
@@ -121,7 +123,27 @@ export class StorageService {
         version: 1,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        totalPlayTime: 0
+        totalPlayTime: 0,
+        totalCoinsEarned: data.economy?.coins || 0,
+        adsWatched: 0
+      };
+      changed = true;
+    } else {
+      if (data.metadata.totalCoinsEarned === undefined) {
+        data.metadata.totalCoinsEarned = data.economy?.coins || 0;
+        changed = true;
+      }
+      if (data.metadata.adsWatched === undefined) {
+        data.metadata.adsWatched = 0;
+        changed = true;
+      }
+    }
+    if (!data.adState) {
+      data.adState = {
+        lastRewardedDate: '',
+        rewardedAdsWatchedToday: 0,
+        lastInterstitialTime: 0,
+        matchesSinceLastInterstitial: 0
       };
       changed = true;
     }

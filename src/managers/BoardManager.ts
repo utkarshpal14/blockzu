@@ -294,4 +294,25 @@ export class BoardManager {
     }
     return count;
   }
+
+  public getOccupiedCells(): { row: number; col: number }[] {
+    const occupied: { row: number; col: number }[] = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        if (this.grid[r][c] === 1) {
+          occupied.push({ row: r, col: c });
+        }
+      }
+    }
+    return occupied;
+  }
+
+  public clearCells(cells: { row: number; col: number }[]): void {
+    cells.forEach(({ row, col }) => {
+      if (this.isInside(row, col)) {
+        this.grid[row][col] = 0;
+        this.cellColors[row][col] = null;
+      }
+    });
+  }
 }

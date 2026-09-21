@@ -13,18 +13,20 @@ import { SettingsModal } from '../ui/modals/SettingsModal';
 import { DailyRewardModal } from '../ui/modals/DailyRewardModal';
 import { MissionsModal } from '../ui/modals/MissionsModal';
 import { AchievementsModal } from '../ui/modals/AchievementsModal';
+import { AdManager } from '../managers/AdManager';
 
 /**
  * MAIN MENU SCENE
  * High-energy, colorful Block Blast-inspired home hub featuring 3D cartoon puffy logo,
  * gold crown, ambient drifting particles, hero score cards, vibrant progression action hub,
- * and live notification badges for Daily Rewards, Missions, and Achievements.
- * Defined in Document 04 (Section 6) & Milestone 7.
+ * rewarded ads for free coins, and live notification badges for Daily Rewards, Missions, and Achievements.
+ * Defined in Document 04 (Section 6) & Milestone 9.
  */
 export class MainMenuScene extends Phaser.Scene {
   private static hasPromptedDailySession: boolean = false;
 
   private coinText!: Phaser.GameObjects.Text;
+  private adBtnText!: Phaser.GameObjects.Text;
   private dailyBadge?: Phaser.GameObjects.Container;
   private missionBadge?: Phaser.GameObjects.Container;
   private badgeAchievementBadge?: Phaser.GameObjects.Container;
@@ -40,6 +42,7 @@ export class MainMenuScene extends Phaser.Scene {
     const saveManager = SaveManager.getInstance();
     const audioManager = AudioManager.getInstance();
     const dailyRewardManager = DailyRewardManager.getInstance();
+    const adManager = AdManager.getInstance();
     const theme = themeManager.getActiveColors();
 
     // 1. Dynamic Vibrant Background with Top/Bottom Gradient Depth (Cohesive Royal Sapphire to Deep Navy)
@@ -120,17 +123,18 @@ export class MainMenuScene extends Phaser.Scene {
       ease: 'Sine.easeInOut'
     });
 
-    // 5. Live Coins Pill (Top)
-    const coinContainer = this.add.container(width / 2, 160);
+    // 5. Top Status Bar: Live Coins Pill (Left) & Rewarded Free Coins Ad Pill (Right)
+    const pillY = 160;
+
+    // A. Coins Pill (Left)
+    const coinContainer = this.add.container(width / 2 - 76, pillY);
     const coinBg = this.add.graphics();
-    // Drop shadow
     coinBg.fillStyle(0x000000, 0.35);
-    coinBg.fillRoundedRect(-70, -14, 140, 28, 14);
-    // Body
+    coinBg.fillRoundedRect(-62, -14, 124, 28, 14);
     coinBg.fillStyle(0x172554, 0.95);
     coinBg.lineStyle(1.5, 0xF59E0B, 0.85); // Gold outline
-    coinBg.fillRoundedRect(-70, -16, 140, 28, 14);
-    coinBg.strokeRoundedRect(-70, -16, 140, 28, 14);
+    coinBg.fillRoundedRect(-62, -16, 124, 28, 14);
+    coinBg.strokeRoundedRect(-62, -16, 124, 28, 14);
     coinContainer.add(coinBg);
 
     this.coinText = this.add.text(0, -2, `🪙 ${saveManager.getCoins().toLocaleString()}`, {
@@ -140,6 +144,42 @@ export class MainMenuScene extends Phaser.Scene {
       color: '#FDE047'
     }).setOrigin(0.5);
     coinContainer.add(this.coinText);
+
+    // B. Free Coins Video Ad Pill (Right)
+    const adContainer = this.add.container(width / 2 + 76, pillY);
+    const adBg = this.add.graphics();
+    adBg.fillStyle(0x000000, 0.35);
+    adBg.fillRoundedRect(-62, -14, 124, 28, 14);
+    adBg.fillStyle(0x172554, 0.95);
+    adBg.lineStyle(1.5, 0x38BDF8, 0.85); // Cyan outline
+    adBg.fillRoundedRect(-62, -16, 124, 28, 14);
+    adBg.strokeRoundedRect(-62, -16, 124, 28, 14);
+    adContainer.add(adBg);
+
+    const remainingAds = adManager.getRemainingRewardedCoinsAds();
+    this.adBtnText = this.add.text(0, -2, `🎬 +50 🪙 (${remainingAds}/5)`, {
+      fontFamily: 'Poppins, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: remainingAds > 0 ? '#38BDF8' : '#64748B'
+    }).setOrigin(0.5);
+    adContainer.add(this.adBtnText);
+
+    adContainer.setSize(124, 28);
+    adContainer.setInteractive({ useHandCursor: true });
+    adContainer.on('pointerdown', () => {
+      audioManager.playButtonClick();
+      if (adManager.canWatchRewardedAd()) {
+        adManager.showRewardedAd(this, 'coins', (rewarded) => {
+          if (rewarded) {
+            this.refreshCoins();
+            this.updateBadges();
+            const left = adManager.getRemainingRewardedCoinsAds();
+            this.adBtnText.setText(`🎬 +50 🪙 (${left}/5)`);
+          }
+        });
+      }
+    });
 
     // 6. Best Score Hero Card (Elevated Glassmorphism with Glowing Gold Accents)
     const cardY = 240;

@@ -452,32 +452,35 @@ Metadata Tracks Playtime & Timestamps
 
 ---
 
-# M9 — Monetization
+# M9 — Monetization & Economy Hardening
 
 ## Goal
 
-Integrate advertisements.
+Integrate player-friendly monetization (interstitials, rewarded ads, revives) and harden the long-term economy.
 
 ### Deliverables
 
 ```text
-AdMob Banner Ads
-
-Interstitial Ads
-
-Rewarded Ads
-
-AdSense Integration
+AdManager Subsystem
+Simulated Interactive Video Ad Modal (RewardedAdModal)
+Fair Rewarded Revive (1 continue, 8-12 cells cleared, combo reset)
+Rewarded Free Coins (+50 coins, 5 ads/day cap)
+Interstitial Frequency Throttling (every 4th game over, 3m cooldown)
+Prestige Theme Pricing Ladder (1.4k to 27k)
+Tiered Achievements (Bronze/Silver/Gold/Legendary up to 25k score)
+Multi-Session Scaled Missions (Easy/Medium/Hard)
+Save Metadata Tracking (totalCoinsEarned, adsWatched)
 ```
 
 ### Acceptance Criteria
 
 ```text
 Ads Display Correctly
-
-Rewarded Ads Grant Rewards
-
-Frequency Rules Followed
+Rewarded Revive Clears 8-12 Cells and Preserves Score
+Rewarded Ads Grant +50 Coins (Max 5/Day)
+Interstitial Frequency Rules Followed
+No Ads During Active Gameplay
+Prestige Themes Unlock via Earned Coins
 ```
 
 ### Estimated Time
@@ -489,7 +492,7 @@ Frequency Rules Followed
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---
@@ -705,10 +708,10 @@ M2 Piece System            ✅
 M3 Placement System        ✅
 M4 Scoring & Line Clear    ✅
 M5 Game Flow               ✅
-M6 UI System               ⬜
-M7 Progression System      ⬜
-M8 Save System             ⬜
-M9 Monetization            ⬜
+M6 UI System               ✅
+M7 Progression System      ✅
+M8 Save System             ✅
+M9 Monetization            ✅
 M10 Polish                 ⬜
 M11 QA & Testing           ⬜
 M12 Release                ⬜

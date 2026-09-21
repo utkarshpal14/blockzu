@@ -14,6 +14,7 @@ export interface PlayerData {
   economy: EconomyData;
   settings: SettingsData;
   dailyReward?: DailyRewardData;
+  adState?: AdStateData;
 }
 
 export interface SaveMetadata {
@@ -21,6 +22,15 @@ export interface SaveMetadata {
   createdAt: number;
   updatedAt: number;
   totalPlayTime: number; // in seconds
+  totalCoinsEarned: number;
+  adsWatched: number;
+}
+
+export interface AdStateData {
+  lastRewardedDate: string; // YYYY-MM-DD
+  rewardedAdsWatchedToday: number;
+  lastInterstitialTime: number;
+  matchesSinceLastInterstitial: number;
 }
 
 export interface DailyRewardData {

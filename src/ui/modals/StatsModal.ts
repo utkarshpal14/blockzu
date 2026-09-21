@@ -145,22 +145,27 @@ export class StatsModal extends Phaser.GameObjects.Container {
       this.panel.add(valText);
     });
 
-    // Playtime Footer Badge
+    // Playtime & Lifetime Economy Footer Badge
     const saveManager = SaveManager.getInstance();
-    const playSeconds = saveManager.getMetadata().totalPlayTime;
+    const meta = saveManager.getMetadata();
     const formatPlayTime = (sec: number) => {
       const hours = Math.floor(sec / 3600);
       const minutes = Math.floor((sec % 3600) / 60);
       if (hours > 0) return `${hours}h ${minutes}m`;
-      return `${Math.max(1, minutes)} min`;
+      return `${Math.max(1, minutes)}m`;
     };
 
-    const footerText = this.scene.add.text(0, panelHeight / 2 - 24, `⏱️ Total Playtime: ${formatPlayTime(playSeconds)}`, {
-      fontFamily: 'Poppins, sans-serif',
-      fontSize: '11px',
-      fontStyle: 'bold',
-      color: '#94A3B8'
-    }).setOrigin(0.5);
+    const footerText = this.scene.add.text(
+      0,
+      panelHeight / 2 - 24,
+      `⏱️ ${formatPlayTime(meta.totalPlayTime)}   🪙 ${meta.totalCoinsEarned.toLocaleString()} Total   🎬 ${meta.adsWatched} Ads`,
+      {
+        fontFamily: 'Poppins, sans-serif',
+        fontSize: '11px',
+        fontStyle: 'bold',
+        color: '#94A3B8'
+      }
+    ).setOrigin(0.5);
     this.panel.add(footerText);
   }
 

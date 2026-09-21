@@ -6,24 +6,29 @@ import { SaveManager } from '../managers/SaveManager';
 import { AudioManager } from '../managers/AudioManager';
 import { AchievementManager } from '../managers/AchievementManager';
 import { MissionManager } from '../managers/MissionManager';
+import { AdManager } from '../managers/AdManager';
 import { SessionStats } from '../systems/GameFlowSystem';
 import { AmbientParticles } from '../ui/components/AmbientParticles';
 
+export interface GameOverData extends SessionStats {
+  hasRevived?: boolean;
+}
+
 /**
  * GAME OVER SCENE
- * Colorful, celebratory screen featuring 0-to-FinalScore odometer counter,
- * falling multi-colored confetti particles, gold sparks, Revive/Continue flow, and instant replay.
- * Defined in Document 04 (Section 16) & Milestone 6.5.
+ * Celebratory screen with odometer score counter, falling confetti,
+ * rewarded revive flow (1 continue/match), interstitial triggers, and instant replay.
+ * Defined in Document 04 & Document 06 (Monetization).
  */
 export class GameOverScene extends Phaser.Scene {
-  private sessionStats?: SessionStats;
+  private sessionStats?: GameOverData;
   private animatedScoreText!: Phaser.GameObjects.Text;
 
   constructor() {
     super('GameOverScene');
   }
 
-  init(data: SessionStats) {
+  init(data: GameOverData) {
     this.sessionStats = data;
   }
 
@@ -34,11 +39,13 @@ export class GameOverScene extends Phaser.Scene {
     const scoreManager = ScoreManager.getInstance();
     const saveManager = SaveManager.getInstance();
     const audioManager = AudioManager.getInstance();
+    const adManager = AdManager.getInstance();
 
     const finalScore = this.sessionStats?.score ?? scoreManager.getCurrentScore();
     const bestScore = saveManager.getBestScore();
     const linesCleared = this.sessionStats?.linesCleared ?? 0;
     const maxCombo = this.sessionStats?.maxCombo ?? 0;
+    const alreadyRevived = !!this.sessionStats?.hasRevived;
 
     // Economy: Match Completion Coin Bounty (+10 Coins)
     saveManager.addCoins(10);
@@ -46,14 +53,19 @@ export class GameOverScene extends Phaser.Scene {
     // Progression: Match Completion Achievements & Missions
     AchievementManager.getInstance().updateProgress('first_game', 1);
     AchievementManager.getInstance().updateProgress('play_10_games', 1, true);
+    AchievementManager.getInstance().updateProgress('play_25_games', 1, true);
     AchievementManager.getInstance().updateProgress('play_50_games', 1, true);
     AchievementManager.getInstance().updateProgress('play_100_games', 1, true);
+    AchievementManager.getInstance().updateProgress('play_250_games', 1, true);
     MissionManager.getInstance().reportProgress('games', 1, true);
+
+    // Monetization: Check interstitial ad trigger (every 4th match, 3m cooldown)
+    adManager.handleMatchFinished(this);
 
     // 1. Dynamic Vibrant Gradient Background (Cohesive Royal Sapphire to Deep Navy)
     const bgGraphics = this.add.graphics();
     const bgTop = Phaser.Display.Color.HexStringToColor(theme.background).color; // 0x223BBE
-    const bgBottom = 0x172554; // Deep Royal Navy (Interconnected with GameScene & MainMenu)
+    const bgBottom = 0x172554; // Deep Royal Navy
     bgGraphics.fillGradientStyle(bgTop, bgTop, bgBottom, bgBottom, 1);
     bgGraphics.fillRect(0, 0, width, height);
 
@@ -157,59 +169,73 @@ export class GameOverScene extends Phaser.Scene {
       color: '#FDE047'
     }).setOrigin(0.5);
 
-    // 5. REVIVE / CONTINUE BUTTON (Glowing Emerald Green)
+    // 5. REVIVE / CONTINUE BUTTON (Glowing Emerald Green or Disabled State)
     const reviveBtn = this.add.container(width / 2, 435);
     const reviveBg = this.add.graphics();
-    // Shadow
-    reviveBg.fillStyle(0x000000, 0.45);
-    reviveBg.fillRoundedRect(-144, -28, 288, 58, 20);
-
-    // Glow Border
-    reviveBg.lineStyle(2, 0x34D399, 0.9);
-    reviveBg.strokeRoundedRect(-144, -30, 288, 58, 20);
-
-    // Green Body
-    reviveBg.fillStyle(0x10b981, 1);
-    reviveBg.fillRoundedRect(-144, -30, 288, 58, 20);
-
-    // Top Gloss
-    reviveBg.fillStyle(0xffffff, 0.28);
-    reviveBg.fillRoundedRect(-140, -28, 280, 24, 16);
     reviveBtn.add(reviveBg);
 
-    const reviveText = this.add.text(0, -1, '📺  CONTINUE (REVIVE)', {
-      fontFamily: 'Poppins, sans-serif',
-      fontSize: '16px',
-      fontStyle: 'bold',
-      color: '#FFFFFF'
-    }).setOrigin(0.5);
-    reviveBtn.add(reviveText);
+    if (!alreadyRevived) {
+      // Active Revive Available
+      reviveBg.fillStyle(0x000000, 0.45);
+      reviveBg.fillRoundedRect(-144, -28, 288, 58, 20);
 
-    reviveBtn.setSize(288, 58);
-    reviveBtn.setInteractive({ useHandCursor: true });
+      reviveBg.lineStyle(2, 0x34D399, 0.9);
+      reviveBg.strokeRoundedRect(-144, -30, 288, 58, 20);
 
-    // Subtle pulsing animation on revive button
-    this.tweens.add({
-      targets: reviveBtn,
-      scale: 1.03,
-      duration: 800,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
+      reviveBg.fillStyle(0x10b981, 1);
+      reviveBg.fillRoundedRect(-144, -30, 288, 58, 20);
 
-    reviveBtn.on('pointerdown', () => {
-      audioManager.playButtonClick();
+      reviveBg.fillStyle(0xffffff, 0.28);
+      reviveBg.fillRoundedRect(-140, -28, 280, 24, 16);
+
+      const reviveText = this.add.text(0, -1, '📺  CONTINUE (REVIVE)', {
+        fontFamily: 'Poppins, sans-serif',
+        fontSize: '16px',
+        fontStyle: 'bold',
+        color: '#FFFFFF'
+      }).setOrigin(0.5);
+      reviveBtn.add(reviveText);
+
+      reviveBtn.setSize(288, 58);
+      reviveBtn.setInteractive({ useHandCursor: true });
+
       this.tweens.add({
         targets: reviveBtn,
-        scale: 0.93,
-        duration: 70,
+        scale: 1.03,
+        duration: 800,
         yoyo: true,
-        onComplete: () => {
-          this.scene.start('GameScene');
-        }
+        repeat: -1,
+        ease: 'Sine.easeInOut'
       });
-    });
+
+      reviveBtn.on('pointerdown', () => {
+        audioManager.playButtonClick();
+        adManager.showRewardedAd(this, 'revive', (rewarded) => {
+          if (rewarded) {
+            this.scene.start('GameScene', {
+              isRevive: true,
+              priorScore: finalScore,
+              linesCleared,
+              maxCombo
+            });
+          }
+        });
+      });
+    } else {
+      // Revive Already Used (Disabled)
+      reviveBg.fillStyle(0x0F172A, 0.6);
+      reviveBg.fillRoundedRect(-144, -28, 288, 58, 20);
+      reviveBg.lineStyle(1.5, 0x334155, 0.8);
+      reviveBg.strokeRoundedRect(-144, -28, 288, 58, 20);
+
+      const usedText = this.add.text(0, -1, '🔒  REVIVE USED (1 / MATCH)', {
+        fontFamily: 'Poppins, sans-serif',
+        fontSize: '14px',
+        fontStyle: 'bold',
+        color: '#64748B'
+      }).setOrigin(0.5);
+      reviveBtn.add(usedText);
+    }
 
     // 6. PLAY AGAIN Button (Vibrant Royal Blue)
     const playAgainBtn = this.add.container(width / 2, 510);

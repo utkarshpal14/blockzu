@@ -41,8 +41,26 @@ export class GameScene extends Phaser.Scene {
   private sessionBlocksPlaced: number = 0;
   private sessionMaxCombo: number = 0;
 
+  private isReviveSession: boolean = false;
+  private priorScore: number = 0;
+
   constructor() {
     super('GameScene');
+  }
+
+  init(data?: { isRevive?: boolean; priorScore?: number; linesCleared?: number; maxCombo?: number }) {
+    if (data?.isRevive) {
+      this.isReviveSession = true;
+      this.priorScore = data.priorScore || 0;
+      this.sessionLinesCleared = data.linesCleared || 0;
+      this.sessionMaxCombo = data.maxCombo || 0;
+    } else {
+      this.isReviveSession = false;
+      this.priorScore = 0;
+      this.sessionLinesCleared = 0;
+      this.sessionBlocksPlaced = 0;
+      this.sessionMaxCombo = 0;
+    }
   }
 
   create() {
@@ -50,19 +68,33 @@ export class GameScene extends Phaser.Scene {
     const height = this.scale.height || CANVAS_HEIGHT;
     const theme = ThemeManager.getInstance().getActiveColors();
     const scoreManager = ScoreManager.getInstance();
-
-    // Reset session trackers
-    this.sessionLinesCleared = 0;
-    this.sessionBlocksPlaced = 0;
-    this.sessionMaxCombo = 0;
+    const audioManager = AudioManager.getInstance();
 
     this.boardManager = BoardManager.getInstance();
-    this.boardManager.reset();
-
     this.pieceManager = PieceManager.getInstance();
-    this.pieceManager.reset();
 
-    scoreManager.resetCurrentScore();
+    if (this.isReviveSession) {
+      // Restore score
+      scoreManager.resetCurrentScore();
+      scoreManager.setScore(this.priorScore);
+
+      // Fair Revive: Clear 8 to 12 random occupied cells
+      const occupied = this.boardManager.getOccupiedCells();
+      const numToClear = Math.min(occupied.length, Phaser.Math.Between(8, 12));
+      Phaser.Utils.Array.Shuffle(occupied);
+      const cellsToClear = occupied.slice(0, numToClear);
+      this.boardManager.clearCells(cellsToClear);
+
+      // Reset tray with fresh pieces
+      this.pieceManager.reset();
+    } else {
+      this.sessionLinesCleared = 0;
+      this.sessionBlocksPlaced = 0;
+      this.sessionMaxCombo = 0;
+      this.boardManager.reset();
+      this.pieceManager.reset();
+      scoreManager.resetCurrentScore();
+    }
 
     // 1. Dynamic Background with Gradient Depth (Cohesive Royal Sapphire to Deep Navy)
     const bgGraphics = this.add.graphics();
@@ -76,6 +108,9 @@ export class GameScene extends Phaser.Scene {
 
     // 3. Top HUD (Crown Best | Huge Score | Settings Gear)
     this.createHUD(width, theme);
+    if (this.isReviveSession) {
+      this.scoreText.setText(this.priorScore.toLocaleString());
+    }
 
     // 4. 8x8 Board View (3D Jewel Blocks + Recessed Pockets)
     this.boardView = new BoardView(this);
@@ -92,6 +127,17 @@ export class GameScene extends Phaser.Scene {
         this.handlePiecePlaced(piece, row, col, onComplete);
       }
     );
+
+    // If Revive session: show celebratory toast and reset combo state
+    if (this.isReviveSession) {
+      this.sessionMaxCombo = 0;
+      audioManager.playCombo();
+      ProgressionToast.show(this, {
+        title: '🌟 REVIVE ACTIVATED!',
+        subtitle: 'Grid Cleared • Combo Reset',
+        icon: '✨'
+      });
+    }
 
     // 7. 30-Second Gameplay Autosave Loop
     this.time.addEvent({
@@ -121,13 +167,14 @@ export class GameScene extends Phaser.Scene {
     return this.clearSystem;
   }
 
-  public getSessionStats(): SessionStats {
+  public getSessionStats(): SessionStats & { hasRevived?: boolean } {
     const scoreManager = ScoreManager.getInstance();
     return {
       score: scoreManager.getCurrentScore(),
       linesCleared: this.sessionLinesCleared,
       blocksPlaced: this.sessionBlocksPlaced,
-      maxCombo: this.sessionMaxCombo
+      maxCombo: this.sessionMaxCombo,
+      hasRevived: this.isReviveSession
     };
   }
 
