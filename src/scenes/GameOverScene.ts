@@ -62,6 +62,13 @@ export class GameOverScene extends Phaser.Scene {
     // Monetization: Check interstitial ad trigger (every 4th match, 3m cooldown)
     adManager.handleMatchFinished(this);
 
+    // Camera transition: Fast 200ms Fade-In
+    this.cameras.main.fadeIn(200, 0, 0, 0);
+
+    // Audio: 1s descending bell cue, then silence
+    audioManager.setAudioState('gameover');
+    audioManager.playGameOver();
+
     // 1. Dynamic Vibrant Gradient Background (Cohesive Royal Sapphire to Deep Navy)
     const bgGraphics = this.add.graphics();
     const bgTop = Phaser.Display.Color.HexStringToColor(theme.background).color; // 0x223BBE
@@ -272,7 +279,10 @@ export class GameOverScene extends Phaser.Scene {
         duration: 70,
         yoyo: true,
         onComplete: () => {
-          this.scene.start('GameScene');
+          this.cameras.main.fadeOut(200, 0, 0, 0);
+          this.cameras.main.once('camerafadeoutcomplete', () => {
+            this.scene.start('GameScene');
+          });
         }
       });
     });
@@ -312,7 +322,10 @@ export class GameOverScene extends Phaser.Scene {
         duration: 70,
         yoyo: true,
         onComplete: () => {
-          this.scene.start('MainMenuScene');
+          this.cameras.main.fadeOut(200, 0, 0, 0);
+          this.cameras.main.once('camerafadeoutcomplete', () => {
+            this.scene.start('MainMenuScene');
+          });
         }
       });
     });

@@ -45,6 +45,12 @@ export class MainMenuScene extends Phaser.Scene {
     const adManager = AdManager.getInstance();
     const theme = themeManager.getActiveColors();
 
+    // Camera transition: Fast 200ms Fade-In
+    this.cameras.main.fadeIn(200, 0, 0, 0);
+
+    // Set Menu Ambient Atmosphere (Warm bass pad + soft arcade synth + light sparkle bells)
+    audioManager.setAudioState('menu');
+
     // 1. Dynamic Vibrant Background with Top/Bottom Gradient Depth (Cohesive Royal Sapphire to Deep Navy)
     const bgGraphics = this.add.graphics();
     const bgTop = Phaser.Display.Color.HexStringToColor(theme.background).color; // 0x223BBE
@@ -376,7 +382,10 @@ export class MainMenuScene extends Phaser.Scene {
         duration: 70,
         yoyo: true,
         onComplete: () => {
-          this.scene.start('GameScene');
+          this.cameras.main.fadeOut(200, 0, 0, 0);
+          this.cameras.main.once('camerafadeoutcomplete', () => {
+            this.scene.start('GameScene');
+          });
         }
       });
     });

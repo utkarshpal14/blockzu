@@ -14,6 +14,7 @@ import {
 } from '../../constants/gameplay';
 import { BoardManager } from '../../managers/BoardManager';
 import { ThemeManager } from '../../managers/ThemeManager';
+import { AudioManager } from '../../managers/AudioManager';
 import { PieceMatrix } from '../../types/Piece';
 import { BlockRenderer } from './BlockRenderer';
 
@@ -30,14 +31,18 @@ export class BoardView {
 
   private container: Phaser.GameObjects.Container;
   private bgGraphics: Phaser.GameObjects.Graphics;
+  private dangerGlowGraphics: Phaser.GameObjects.Graphics;
   private emptyCellsGraphics: Phaser.GameObjects.Graphics;
   private impendingHighlightGraphics: Phaser.GameObjects.Graphics;
   private previewGraphics: Phaser.GameObjects.Graphics;
   private filledTilesContainer: Phaser.GameObjects.Container;
   private flashOverlayGraphics: Phaser.GameObjects.Graphics;
+  private shockwaveGraphics: Phaser.GameObjects.Graphics;
   private particlesContainer: Phaser.GameObjects.Container;
 
   private filledTileObjects: (Phaser.GameObjects.Container | null)[][];
+  private currentDangerTier: number = 0; // 0: none, 1: amber, 2: crimson, 3: critical
+  private dangerTween: Phaser.Tweens.Tween | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -45,21 +50,25 @@ export class BoardView {
     this.themeManager = ThemeManager.getInstance();
 
     this.container = this.scene.add.container(0, 0);
-    this.bgGraphics = this.scene.add.graphics();
-    this.emptyCellsGraphics = this.scene.add.graphics();
+    this.dangerGlowGraphics = this.scene.add.graphics().setDepth(5);
+    this.bgGraphics = this.scene.add.graphics().setDepth(8);
+    this.emptyCellsGraphics = this.scene.add.graphics().setDepth(10);
     this.impendingHighlightGraphics = this.scene.add.graphics().setDepth(15);
     this.previewGraphics = this.scene.add.graphics().setDepth(18);
-    this.filledTilesContainer = this.scene.add.container(0, 0);
-    this.flashOverlayGraphics = this.scene.add.graphics().setDepth(20);
+    this.filledTilesContainer = this.scene.add.container(0, 0).setDepth(20);
+    this.flashOverlayGraphics = this.scene.add.graphics().setDepth(25);
+    this.shockwaveGraphics = this.scene.add.graphics().setDepth(28);
     this.particlesContainer = this.scene.add.container(0, 0).setDepth(30);
 
     this.container.add([
+      this.dangerGlowGraphics,
       this.bgGraphics,
       this.emptyCellsGraphics,
       this.impendingHighlightGraphics,
       this.previewGraphics,
       this.filledTilesContainer,
       this.flashOverlayGraphics,
+      this.shockwaveGraphics,
       this.particlesContainer
     ]);
 
@@ -310,9 +319,88 @@ export class BoardView {
   }
 
   /**
-   * Explosive 200ms line clear sequence with neon beams and sparkling fireworks:
-   * 1. 50ms Radiant Neon Beam Flash on unique cleared cells
-   * 2. 16-24 Sparkling Physics Particles per line
+   * Evaluates grid occupancy and updates multi-tiered danger aura:
+   * - < 70% (0-44 cells): Inactive
+   * - 70%+ (45-53 cells): Soft amber glow (0xF59E0B)
+   * - 85%+ (54-60 cells): Strong crimson pulse (0xEF4444)
+   * - 95%+ (61-64 cells): Intense pulse (0xDC2626) + subtle warning audio
+   */
+  public updateDangerAura(occupiedCount: number): void {
+    let newTier = 0;
+    if (occupiedCount >= 61) {
+      newTier = 3;
+    } else if (occupiedCount >= 54) {
+      newTier = 2;
+    } else if (occupiedCount >= 45) {
+      newTier = 1;
+    }
+
+    if (newTier === this.currentDangerTier) return;
+    this.currentDangerTier = newTier;
+    AudioManager.getInstance().setDangerTier(newTier);
+
+    if (this.dangerTween) {
+      this.dangerTween.stop();
+      this.dangerTween = null;
+    }
+
+    this.dangerGlowGraphics.clear();
+    this.dangerGlowGraphics.setAlpha(1);
+
+    if (newTier === 0) {
+      return;
+    }
+
+    const bx = BOARD_CARD_X - 6;
+    const by = BOARD_CARD_Y - 6;
+    const bw = BOARD_CARD_WIDTH + 12;
+    const bh = BOARD_CARD_HEIGHT + 12;
+
+    if (newTier === 1) {
+      // 70%: Soft Amber Glow
+      this.dangerGlowGraphics.lineStyle(6, 0xF59E0B, 0.45);
+      this.dangerGlowGraphics.strokeRoundedRect(bx, by, bw, bh, 26);
+      this.dangerGlowGraphics.lineStyle(2, 0xFDE047, 0.6);
+      this.dangerGlowGraphics.strokeRoundedRect(bx + 2, by + 2, bw - 4, bh - 4, 24);
+    } else if (newTier === 2) {
+      // 85%: Strong Crimson Pulse
+      this.dangerGlowGraphics.lineStyle(8, 0xEF4444, 0.75);
+      this.dangerGlowGraphics.strokeRoundedRect(bx, by, bw, bh, 26);
+      this.dangerGlowGraphics.lineStyle(3, 0xF87171, 0.85);
+      this.dangerGlowGraphics.strokeRoundedRect(bx + 2, by + 2, bw - 4, bh - 4, 24);
+
+      this.dangerTween = this.scene.tweens.add({
+        targets: this.dangerGlowGraphics,
+        alpha: 0.35,
+        duration: 650,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    } else if (newTier === 3) {
+      // 95%: Intense Critical Pulse + Warning Tone
+      this.dangerGlowGraphics.lineStyle(10, 0xDC2626, 0.95);
+      this.dangerGlowGraphics.strokeRoundedRect(bx, by, bw, bh, 26);
+      this.dangerGlowGraphics.lineStyle(4, 0xFFFFFF, 0.9);
+      this.dangerGlowGraphics.strokeRoundedRect(bx + 2, by + 2, bw - 4, bh - 4, 24);
+
+      this.dangerTween = this.scene.tweens.add({
+        targets: this.dangerGlowGraphics,
+        alpha: 0.25,
+        duration: 320,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+
+      AudioManager.getInstance().playDangerWarning();
+    }
+  }
+
+  /**
+   * Explosive line clear sequence:
+   * 1. 50ms Radiant Neon Beam Flash
+   * 2. Expanding Shockwave Ring & Star Particles
    * 3. 100ms Shrink + 50ms Fade
    */
   public animateLineClears(rows: number[], cols: number[], onComplete?: () => void): void {
@@ -353,7 +441,7 @@ export class BoardView {
     const theme = this.themeManager.getActiveColors();
     const particleColor = Phaser.Display.Color.HexStringToColor(theme.accent).color;
 
-    // 1. Draw Intense Neon Laser Aura around clearing rows and columns (Block Blast Style)
+    // 1. Draw Intense Neon Laser Aura around clearing rows and columns
     this.flashOverlayGraphics.clear();
 
     const gridWidth = 8 * CELL_SIZE + 7 * CELL_GAP;
@@ -367,13 +455,10 @@ export class BoardView {
       const rw = gridWidth + 6;
       const rh = CELL_SIZE + 6;
 
-      // Outer glow
       this.flashOverlayGraphics.lineStyle(6, particleColor, 0.5);
       this.flashOverlayGraphics.strokeRoundedRect(rx, ry, rw, rh, CELL_RADIUS + 2);
-      // Mid neon stroke
       this.flashOverlayGraphics.lineStyle(3, 0xffffff, 0.9);
       this.flashOverlayGraphics.strokeRoundedRect(rx, ry, rw, rh, CELL_RADIUS + 2);
-      // Fill flash
       this.flashOverlayGraphics.fillStyle(0xffffff, 0.4);
       this.flashOverlayGraphics.fillRoundedRect(rx, ry, rw, rh, CELL_RADIUS + 2);
     });
@@ -386,27 +471,27 @@ export class BoardView {
       const cw = CELL_SIZE + 6;
       const ch = gridHeight + 6;
 
-      // Outer glow
       this.flashOverlayGraphics.lineStyle(6, particleColor, 0.5);
       this.flashOverlayGraphics.strokeRoundedRect(cx, cy, cw, ch, CELL_RADIUS + 2);
-      // Mid neon stroke
       this.flashOverlayGraphics.lineStyle(3, 0xffffff, 0.9);
       this.flashOverlayGraphics.strokeRoundedRect(cx, cy, cw, ch, CELL_RADIUS + 2);
-      // Fill flash
       this.flashOverlayGraphics.fillStyle(0xffffff, 0.4);
       this.flashOverlayGraphics.fillRoundedRect(cx, cy, cw, ch, CELL_RADIUS + 2);
     });
 
+    // 2. Expanding Shockwave Ring across Board
+    this.triggerShockwaveRing(BOARD_CARD_X + BOARD_CARD_WIDTH / 2, BOARD_CARD_Y + BOARD_CARD_HEIGHT / 2, particleColor);
+
     this.scene.time.delayedCall(LINE_FLASH_DURATION, () => {
       this.flashOverlayGraphics.clear();
 
-      // 2. Spawn 12-16 Sparkling Fireworks Particles per unique cell
+      // 3. Spawn Bursting Star & Sparkle Particles per unique cell
       uniqueCells.forEach(({ row, col }) => {
         const center = this.boardManager.getCellCenter(row, col);
         this.spawnCellFireworks(center.x, center.y, particleColor);
       });
 
-      // 3. Shrink & Fade
+      // 4. Shrink & Fade
       const tileObjects = uniqueCells.map((c) => c.obj);
       this.scene.tweens.add({
         targets: tileObjects,
@@ -420,6 +505,35 @@ export class BoardView {
           if (onComplete) onComplete();
         }
       });
+    });
+  }
+
+  /**
+   * Generates a dynamic expanding shockwave energy ring across the board.
+   */
+  private triggerShockwaveRing(centerX: number, centerY: number, color: number) {
+    this.shockwaveGraphics.clear();
+    const shockwave = { radius: 10, alpha: 0.9, strokeWidth: 5 };
+
+    this.scene.tweens.add({
+      targets: shockwave,
+      radius: 190,
+      alpha: 0,
+      strokeWidth: 1,
+      duration: 320,
+      ease: 'Quad.easeOut',
+      onUpdate: () => {
+        this.shockwaveGraphics.clear();
+        if (shockwave.alpha > 0.01) {
+          this.shockwaveGraphics.lineStyle(shockwave.strokeWidth, color, shockwave.alpha);
+          this.shockwaveGraphics.strokeCircle(centerX, centerY, shockwave.radius);
+          this.shockwaveGraphics.lineStyle(Math.max(1, shockwave.strokeWidth - 2), 0xFFFFFF, shockwave.alpha * 0.8);
+          this.shockwaveGraphics.strokeCircle(centerX, centerY, shockwave.radius * 0.94);
+        }
+      },
+      onComplete: () => {
+        this.shockwaveGraphics.clear();
+      }
     });
   }
 
@@ -448,11 +562,11 @@ export class BoardView {
   }
 
   /**
-   * Radiant fireworks particle explosion on line clear.
+   * Radiant star bursts and fireworks particle explosion on line clear.
    */
   private spawnCellFireworks(x: number, y: number, color: number): void {
     const count = 12;
-    const colors = [color, 0xFFD700, 0xFFFFFF];
+    const colors = [color, 0xFFD700, 0xFFFFFF, 0x38BDF8];
 
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
@@ -476,6 +590,10 @@ export class BoardView {
   }
 
   public destroy(): void {
+    if (this.dangerTween) {
+      this.dangerTween.stop();
+      this.dangerTween = null;
+    }
     this.container.destroy();
   }
 }

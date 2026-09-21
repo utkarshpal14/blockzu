@@ -96,6 +96,12 @@ export class GameScene extends Phaser.Scene {
       scoreManager.resetCurrentScore();
     }
 
+    // Camera transition: Fast 200ms Fade-In
+    this.cameras.main.fadeIn(200, 0, 0, 0);
+
+    // Set Calm Gameplay Ambient Pad & Zen Soundscape
+    audioManager.setAudioState('gameplay');
+
     // 1. Dynamic Background with Gradient Depth (Cohesive Royal Sapphire to Deep Navy)
     const bgGraphics = this.add.graphics();
     const bgTop = Phaser.Display.Color.HexStringToColor(theme.background).color; // 0x223BBE
@@ -128,19 +134,23 @@ export class GameScene extends Phaser.Scene {
       }
     );
 
+    // Check danger state initially (especially on revive)
+    this.boardView.updateDangerAura(this.boardManager.getOccupiedCells().length);
+
     // If Revive session: show celebratory toast and reset combo state
     if (this.isReviveSession) {
       this.sessionMaxCombo = 0;
-      audioManager.playCombo();
+      audioManager.playCombo(2);
       ProgressionToast.show(this, {
         title: '🌟 REVIVE ACTIVATED!',
         subtitle: 'Grid Cleared • Combo Reset',
         icon: '✨'
       });
+      this.pulseScoreCounter(true);
     }
 
     // 7. 30-Second Gameplay Autosave Loop
-    this.time.addEvent({
+    const autosaveEvent = this.time.addEvent({
       delay: 30000,
       loop: true,
       callback: () => {
@@ -148,6 +158,14 @@ export class GameScene extends Phaser.Scene {
         saveManager.flushSessionPlayTime();
         saveManager.save();
       }
+    });
+
+    // Clean Memory & Lifecycle management on scene shutdown
+    this.events.once('shutdown', () => {
+      autosaveEvent.destroy();
+      audioManager.resetPlacementStreak();
+      this.boardView.destroy();
+      this.trayView.destroy();
     });
   }
 
@@ -195,20 +213,24 @@ export class GameScene extends Phaser.Scene {
     const achievementManager = AchievementManager.getInstance();
     const missionManager = MissionManager.getInstance();
     const saveManager = SaveManager.getInstance();
+    const audioManager = AudioManager.getInstance();
 
-    // Subtle snap haptic vibration
-    AudioManager.getInstance().vibrate(18);
+    // Subtle snap haptic vibration & Ascending Placement Pitch Ladder
+    audioManager.vibrate(18);
+    audioManager.playPlace();
 
     // Progression: Block placement
     if (achievementManager.updateProgress('first_placement', 1)) {
       ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: 'First Placement', rewardCoins: 50, icon: '🏆' });
+      this.pulseScoreCounter(true);
     }
     const newlyCompletedMissions = missionManager.reportProgress('blocks', piece.blockCount, true);
     newlyCompletedMissions.forEach((m) => {
       ProgressionToast.show(this, { title: 'MISSION COMPLETE!', subtitle: m.title, rewardCoins: m.rewardCoins, icon: '🎯' });
+      this.pulseScoreCounter(true);
     });
 
-    // 2. Update HUD
+    // 2. Update HUD & Score
     this.updateHUD();
 
     const placementPoints = piece.blockCount * POINTS_PER_BLOCK;
@@ -221,6 +243,9 @@ export class GameScene extends Phaser.Scene {
       text: `+${piece.blockCount}`,
       fontSize: '20px'
     });
+
+    // Check danger state immediately on tile placement
+    this.boardView.updateDangerAura(this.boardManager.getOccupiedCells().length);
 
     // 4. Evaluate Line Clears & Combos
     this.clearSystem.evaluateAndClearLines((result) => {
@@ -235,18 +260,21 @@ export class GameScene extends Phaser.Scene {
         if (def && currentScore >= def.target) {
           if (achievementManager.updateProgress(achId, currentScore, false)) {
             ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: def.title, rewardCoins: def.rewardCoins, icon: '🏆' });
+            this.pulseScoreCounter(true);
           }
         }
       });
       const scoreMissions = missionManager.reportProgress('score', currentScore, false);
       scoreMissions.forEach((m) => {
         ProgressionToast.show(this, { title: 'MISSION COMPLETE!', subtitle: m.title, rewardCoins: m.rewardCoins, icon: '🎯' });
+        this.pulseScoreCounter(true);
       });
 
       if (result.hasCleared) {
         this.sessionLinesCleared += result.linesCleared;
         this.sessionMaxCombo = Math.max(this.sessionMaxCombo, result.linesCleared);
         this.updateHUD();
+        this.pulseScoreCounter(true);
 
         // Economy: In-game Coin Earnings
         let earnedCoins = result.linesCleared * 2; // +2 per line
@@ -270,37 +298,45 @@ export class GameScene extends Phaser.Scene {
             const def = achievementManager.getAchievementDefinitions().find((d) => d.id === achId);
             if (def) {
               ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: def.title, rewardCoins: def.rewardCoins, icon: '🏆' });
+              this.pulseScoreCounter(true);
             }
           }
         });
         const lineMissions = missionManager.reportProgress('lines', result.linesCleared, true);
         lineMissions.forEach((m) => {
           ProgressionToast.show(this, { title: 'MISSION COMPLETE!', subtitle: m.title, rewardCoins: m.rewardCoins, icon: '🎯' });
+          this.pulseScoreCounter(true);
         });
 
         // Progression: Combos
         if (result.linesCleared >= 2) {
           if (achievementManager.updateProgress('first_combo', 1)) {
             ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: 'First Combo', rewardCoins: 100, icon: '⚡' });
+            this.pulseScoreCounter(true);
           }
           ['combo_10', 'combo_50', 'combo_100'].forEach((achId) => {
             if (achievementManager.updateProgress(achId, 1, true)) {
               const def = achievementManager.getAchievementDefinitions().find((d) => d.id === achId);
               if (def) {
                 ProgressionToast.show(this, { title: 'ACHIEVEMENT UNLOCKED!', subtitle: def.title, rewardCoins: def.rewardCoins, icon: '⚡' });
+                this.pulseScoreCounter(true);
               }
             }
           });
           const comboMissions = missionManager.reportProgress('combos', 1, true);
           comboMissions.forEach((m) => {
             ProgressionToast.show(this, { title: 'MISSION COMPLETE!', subtitle: m.title, rewardCoins: m.rewardCoins, icon: '🎯' });
+            this.pulseScoreCounter(true);
           });
 
-          AudioManager.getInstance().vibrate([30, 40, 50]);
+          audioManager.vibrate([30, 40, 50]);
         } else {
-          AudioManager.getInstance().vibrate(35);
+          audioManager.vibrate(35);
         }
       }
+
+      // Re-evaluate danger aura post-clears
+      this.boardView.updateDangerAura(this.boardManager.getOccupiedCells().length);
 
       // 5. Trigger Tray Refill (if tray was emptied by this placement)
       onComplete();
@@ -371,11 +407,14 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
-    // Hold for 1.1s, then trigger game over
-    this.time.delayedCall(1100, () => {
-      this.gameFlowSystem.triggerGameOver(this.getSessionStats(), () => {
-        overlay.destroy();
-        bannerContainer.destroy();
+    // Hold for 900ms, fade out camera, then trigger game over
+    this.time.delayedCall(900, () => {
+      this.cameras.main.fadeOut(200, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.gameFlowSystem.triggerGameOver(this.getSessionStats(), () => {
+          overlay.destroy();
+          bannerContainer.destroy();
+        });
       });
     });
   }
@@ -387,15 +426,40 @@ export class GameScene extends Phaser.Scene {
 
     this.scoreText.setText(`${currentScore}`);
     this.bestScoreText.setText(`${saveManager.getBestScore().toLocaleString()}`);
+    this.pulseScoreCounter(false);
+  }
 
-    // Score pop animation
-    this.tweens.add({
-      targets: this.scoreText,
-      scale: 1.18,
-      duration: 80,
-      yoyo: true,
-      ease: 'Quad.easeOut'
-    });
+  /**
+   * Pulses score counter:
+   * - Standard placement: scale 1.12x for 80ms
+   * - Major event (line clear, combo, achievement, mission): scale 1.25x for 160ms with gold flash
+   */
+  public pulseScoreCounter(isMajor: boolean = false) {
+    if (!this.scoreText || !this.scoreText.scene) return;
+
+    if (isMajor) {
+      this.scoreText.setColor('#FACC15');
+      this.tweens.add({
+        targets: this.scoreText,
+        scale: 1.25,
+        duration: 90,
+        yoyo: true,
+        ease: 'Quad.easeOut',
+        onComplete: () => {
+          if (this.scoreText) {
+            this.scoreText.setColor('#FFFFFF');
+          }
+        }
+      });
+    } else {
+      this.tweens.add({
+        targets: this.scoreText,
+        scale: 1.12,
+        duration: 60,
+        yoyo: true,
+        ease: 'Quad.easeOut'
+      });
+    }
   }
 
   /**

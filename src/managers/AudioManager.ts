@@ -69,6 +69,14 @@ export class AudioManager {
     return nextState;
   }
 
+  public setAudioState(state: 'menu' | 'gameplay' | 'gameover', dangerTier: number = 0) {
+    this.audioService.setAudioState(state, dangerTier);
+  }
+
+  public setDangerTier(tier: number) {
+    this.audioService.setDangerTier(tier);
+  }
+
   public vibrate(pattern: number | number[] = 15) {
     this.audioService.vibrate(pattern);
   }
@@ -77,8 +85,12 @@ export class AudioManager {
     this.audioService.playPickupSound();
   }
 
-  public playPlace() {
-    this.audioService.playPlaceSound();
+  public playPlace(): number {
+    return this.audioService.playPlaceSound();
+  }
+
+  public resetPlacementStreak() {
+    this.audioService.resetPlacementStreak();
   }
 
   public playInvalid() {
@@ -93,8 +105,12 @@ export class AudioManager {
     this.audioService.playAppreciationSound(level);
   }
 
-  public playCombo() {
-    this.audioService.playComboSound();
+  public playCombo(level: number = 2) {
+    this.audioService.playComboSound(level);
+  }
+
+  public playDangerWarning() {
+    this.audioService.playDangerWarningSound();
   }
 
   public playButtonClick() {
