@@ -3,12 +3,16 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/gameplay';
 import { ThemeManager } from '../managers/ThemeManager';
 import { ScoreManager } from '../managers/ScoreManager';
 import { AudioManager } from '../managers/AudioManager';
+import { BoardManager } from '../managers/BoardManager';
+import { BoardView } from '../ui/components/BoardView';
 
 /**
  * GAME SCENE (Core Gameplay Loop)
  * Defined in Document 02, 03, 04.
  */
 export class GameScene extends Phaser.Scene {
+  private boardManager!: BoardManager;
+  private boardView!: BoardView;
   private scoreText!: Phaser.GameObjects.Text;
   private bestScoreText!: Phaser.GameObjects.Text;
 
@@ -23,6 +27,8 @@ export class GameScene extends Phaser.Scene {
     const scoreManager = ScoreManager.getInstance();
     const audioManager = AudioManager.getInstance();
 
+    this.boardManager = BoardManager.getInstance();
+    this.boardManager.reset();
     scoreManager.resetCurrentScore();
 
     // Background
@@ -30,6 +36,9 @@ export class GameScene extends Phaser.Scene {
 
     // Top HUD Bar
     this.createHUD(width, theme);
+
+    // 8x8 Board View
+    this.boardView = new BoardView(this);
 
     // Home / Menu button
     const homeBtn = this.add.text(40, 48, '←', {
@@ -42,6 +51,14 @@ export class GameScene extends Phaser.Scene {
       audioManager.playButtonClick();
       this.scene.start('MainMenuScene');
     });
+  }
+
+  public getBoardView(): BoardView {
+    return this.boardView;
+  }
+
+  public getBoardManager(): BoardManager {
+    return this.boardManager;
   }
 
   private createHUD(width: number, theme: any) {

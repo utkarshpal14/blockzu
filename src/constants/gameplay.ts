@@ -1,6 +1,6 @@
 /**
  * GAMEPLAY CONSTANTS
- * Grid dimensions, timings, and scoring rules.
+ * Grid dimensions, timings, board layout, and scoring rules.
  */
 
 export const GRID_SIZE = 8;
@@ -10,10 +10,19 @@ export const TRAY_CAPACITY = 3;
 export const CANVAS_WIDTH = 450;
 export const CANVAS_HEIGHT = 800;
 
-export const BOARD_PADDING = 20;
-export const CELL_SIZE = 46;
-export const CELL_GAP = 4;
-export const CELL_RADIUS = 6;
+// Board Geometry (Perfect fit for 450x800)
+export const CELL_SIZE = 45;
+export const CELL_GAP = 5;
+export const CELL_RADIUS = 7;
+
+export const BOARD_CARD_WIDTH = 420;
+export const BOARD_CARD_HEIGHT = 420;
+export const BOARD_CARD_X = (CANVAS_WIDTH - BOARD_CARD_WIDTH) / 2; // 15
+export const BOARD_CARD_Y = 105;
+
+// Grid Start Coordinates (Inside Board Card)
+export const BOARD_GRID_START_X = BOARD_CARD_X + 12.5;
+export const BOARD_GRID_START_Y = BOARD_CARD_Y + 12.5;
 
 // Scoring Constants
 export const POINTS_PER_BLOCK = 1;

@@ -142,7 +142,7 @@ Board Updates In Real Time
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---
@@ -699,7 +699,7 @@ Use the following format during development:
 
 ```text
 M0 Project Setup           ✅
-M1 Board System            ⬜
+M1 Board System            ✅
 M2 Piece System            ⬜
 M3 Placement System        ⬜
 M4 Scoring & Line Clear    ⬜
