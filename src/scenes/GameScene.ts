@@ -7,11 +7,13 @@ import { BoardManager } from '../managers/BoardManager';
 import { PieceManager } from '../managers/PieceManager';
 import { BoardView } from '../ui/components/BoardView';
 import { TrayView } from '../ui/components/TrayView';
+import { ClearSystem } from '../systems/ClearSystem';
+import { FloatingText } from '../ui/components/FloatingText';
 import { PieceDefinition } from '../types/Piece';
 
 /**
  * GAME SCENE (Core Gameplay Loop)
- * Coordinates the HUD, BoardView, TrayView, and placement lifecycle.
+ * Coordinates HUD, BoardView, TrayView, ClearSystem, and real-time scoring.
  * Defined in Document 02, 03, 04.
  */
 export class GameScene extends Phaser.Scene {
@@ -19,6 +21,8 @@ export class GameScene extends Phaser.Scene {
   private pieceManager!: PieceManager;
   private boardView!: BoardView;
   private trayView!: TrayView;
+  private clearSystem!: ClearSystem;
+
   private scoreText!: Phaser.GameObjects.Text;
   private bestScoreText!: Phaser.GameObjects.Text;
 
@@ -50,10 +54,17 @@ export class GameScene extends Phaser.Scene {
     // 8x8 Board View
     this.boardView = new BoardView(this);
 
-    // 3-Piece Tray View with Placement Callback
-    this.trayView = new TrayView(this, this.boardView, (piece: PieceDefinition, row: number, col: number) => {
-      this.handlePiecePlaced(piece, row, col);
-    });
+    // Clear & Combo System
+    this.clearSystem = new ClearSystem(this, this.boardView);
+
+    // 3-Piece Tray View
+    this.trayView = new TrayView(
+      this,
+      this.boardView,
+      (piece: PieceDefinition, row: number, col: number, onComplete: () => void) => {
+        this.handlePiecePlaced(piece, row, col, onComplete);
+      }
+    );
 
     // Home / Menu button
     const homeBtn = this.add.text(40, 48, '←', {
@@ -80,32 +91,51 @@ export class GameScene extends Phaser.Scene {
     return this.trayView;
   }
 
-  private handlePiecePlaced(piece: PieceDefinition, row: number, col: number) {
-    const scoreManager = ScoreManager.getInstance();
-    const theme = ThemeManager.getInstance().getActiveColors();
+  public getClearSystem(): ClearSystem {
+    return this.clearSystem;
+  }
 
-    // 1. Update HUD scores
+  /**
+   * Coordinated placement lifecycle:
+   * 1. Lock input
+   * 2. Show placement score floater (+N)
+   * 3. Evaluate lines with ClearSystem (scoring, screen shake, combo text, fast 200ms clear)
+   * 4. Unlock input and trigger tray refill
+   */
+  private handlePiecePlaced(piece: PieceDefinition, row: number, col: number, onComplete: () => void) {
+    const scoreManager = ScoreManager.getInstance();
+
+    // 1. Lock Input
+    this.trayView.setLocked(true);
+
+    // 2. Update HUD
+    this.updateHUD();
+
+    // 3. Score popup for base block placement (+1, +4, +9)
+    const cellPos = this.boardManager.getCellCenter(row, col);
+    FloatingText.show(this, {
+      x: cellPos.x,
+      y: cellPos.y,
+      text: `+${piece.blockCount}`,
+      fontSize: '20px'
+    });
+
+    // 4. Evaluate Line Clears & Combos
+    this.clearSystem.evaluateAndClearLines((result) => {
+      if (result.hasCleared) {
+        this.updateHUD();
+      }
+
+      // 5. Unlock Input & Proceed
+      this.trayView.setLocked(false);
+      onComplete();
+    });
+  }
+
+  private updateHUD() {
+    const scoreManager = ScoreManager.getInstance();
     this.scoreText.setText(`${scoreManager.getCurrentScore()}`);
     this.bestScoreText.setText(`${scoreManager.getBestScore()}`);
-
-    // 2. Score Pop-up effect at placement position
-    const cellPos = this.boardManager.getCellCenter(row, col);
-    const popup = this.add.text(cellPos.x, cellPos.y, `+${piece.blockCount}`, {
-      fontFamily: 'Poppins, sans-serif',
-      fontSize: '22px',
-      fontStyle: 'bold',
-      color: theme.accent
-    }).setOrigin(0.5).setDepth(200);
-
-    this.tweens.add({
-      targets: popup,
-      y: cellPos.y - 35,
-      alpha: 0,
-      scale: 1.3,
-      duration: 600,
-      ease: 'Quad.easeOut',
-      onComplete: () => popup.destroy()
-    });
   }
 
   private createHUD(width: number, theme: any) {

@@ -274,7 +274,7 @@ Combo Logic Functions
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---
@@ -702,7 +702,7 @@ M0 Project Setup           ✅
 M1 Board System            ✅
 M2 Piece System            ✅
 M3 Placement System        ✅
-M4 Scoring & Line Clear    ⬜
+M4 Scoring & Line Clear    ✅
 M5 Game Flow               ⬜
 M6 UI System               ⬜
 M7 Progression System      ⬜

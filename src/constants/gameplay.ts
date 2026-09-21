@@ -32,16 +32,22 @@ export const TRAY_Y = 650;
 export const TRAY_SLOT_X_OFFSETS = [85, 225, 365];
 export const TRAY_SCALE = 0.55;
 export const DRAG_SCALE = 1.0;
-export const DRAG_OFFSET_Y = 60; // Configurable finger offset so thumb doesn't hide the piece
+export const DRAG_OFFSET_Y = 60; // Configurable finger offset
 
-// Animation Timings (ms)
+// Fast Responsive Animation Timings (ms) - Block Blast style
 export const SNAP_DURATION = 80;
 export const PLACEMENT_ANIM_DURATION = 80;
 export const SPRING_BACK_DURATION = 160;
-export const LINE_CLEAR_ANIM_DURATION = 250;
-export const COMBO_POPUP_DURATION = 600;
 
-// Scoring Constants (Base score = blockCount)
+export const LINE_CLEAR_ANIM_DURATION = 200; // 50ms flash + 100ms shrink + 50ms fade
+export const LINE_FLASH_DURATION = 50;
+export const LINE_SHRINK_DURATION = 100;
+export const LINE_FADE_DURATION = 50;
+
+export const FLOATING_TEXT_DURATION = 400;
+export const SCREEN_SHAKE_DURATION = 100;
+
+// Scoring Constants
 export const POINTS_PER_BLOCK = 1;
 export const POINTS_PER_LINE = 10;
 export const COMBO_MULTIPLIER_PER_LINE = 5;

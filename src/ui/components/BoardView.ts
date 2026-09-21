@@ -1,13 +1,25 @@
 import Phaser from 'phaser';
-import { GRID_SIZE, CELL_SIZE, CELL_GAP, CELL_RADIUS, BOARD_CARD_X, BOARD_CARD_Y, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, LINE_CLEAR_ANIM_DURATION } from '../../constants/gameplay';
+import {
+  GRID_SIZE,
+  CELL_SIZE,
+  CELL_GAP,
+  CELL_RADIUS,
+  BOARD_CARD_X,
+  BOARD_CARD_Y,
+  BOARD_CARD_WIDTH,
+  BOARD_CARD_HEIGHT,
+  LINE_FLASH_DURATION,
+  LINE_SHRINK_DURATION,
+  LINE_FADE_DURATION
+} from '../../constants/gameplay';
 import { BoardManager } from '../../managers/BoardManager';
 import { ThemeManager } from '../../managers/ThemeManager';
 import { PieceMatrix } from '../../types/Piece';
 
 /**
  * BOARD VIEW COMPONENT
- * Handles visual rendering of the 8x8 board card, cell slots, filled blocks, and ghost previews.
- * Visual specifications defined in Document 04 (UI/UX Specification).
+ * Handles visual rendering of the 8x8 board card, cell slots, filled blocks, ghost previews,
+ * and high-performance 200ms line clear sequences with particle bursts.
  */
 export class BoardView {
   private scene: Phaser.Scene;
@@ -19,7 +31,8 @@ export class BoardView {
   private emptyCellsGraphics: Phaser.GameObjects.Graphics;
   private previewGraphics: Phaser.GameObjects.Graphics;
   private filledTilesContainer: Phaser.GameObjects.Container;
-  private lineClearOverlay: Phaser.GameObjects.Graphics;
+  private flashOverlayGraphics: Phaser.GameObjects.Graphics;
+  private particlesContainer: Phaser.GameObjects.Container;
 
   private filledTileObjects: (Phaser.GameObjects.Graphics | null)[][];
 
@@ -33,14 +46,16 @@ export class BoardView {
     this.emptyCellsGraphics = this.scene.add.graphics();
     this.previewGraphics = this.scene.add.graphics();
     this.filledTilesContainer = this.scene.add.container(0, 0);
-    this.lineClearOverlay = this.scene.add.graphics();
+    this.flashOverlayGraphics = this.scene.add.graphics().setDepth(20);
+    this.particlesContainer = this.scene.add.container(0, 0).setDepth(30);
 
     this.container.add([
       this.bgGraphics,
       this.emptyCellsGraphics,
       this.previewGraphics,
       this.filledTilesContainer,
-      this.lineClearOverlay
+      this.flashOverlayGraphics,
+      this.particlesContainer
     ]);
 
     this.filledTileObjects = [];
@@ -62,7 +77,7 @@ export class BoardView {
 
     // 1. Board Card (Outer container with elevation effect)
     this.bgGraphics.clear();
-    
+
     // Soft drop shadow simulation
     this.bgGraphics.fillStyle(0x000000, 0.15);
     this.bgGraphics.fillRoundedRect(BOARD_CARD_X, BOARD_CARD_Y + 4, BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, 18);
@@ -162,47 +177,116 @@ export class BoardView {
   }
 
   /**
-   * Animates clearing of rows and columns with flash and shrink effect.
+   * Fast, punchy 200ms line clear sequence:
+   * 1. 50ms White Flash on unique cells (Set<string> deduplication)
+   * 2. 100ms Shrink + 8-12 Particle Sparks
+   * 3. 50ms Fade to empty
    */
   public animateLineClears(rows: number[], cols: number[], onComplete?: () => void): void {
-    const targetsToAnimate: Phaser.GameObjects.Graphics[] = [];
+    // 1. Deduplicate unique cells using Set<string> ("row-col")
+    const uniqueCellKeys = new Set<string>();
+    const uniqueCells: { row: number; col: number; obj: Phaser.GameObjects.Graphics }[] = [];
 
     rows.forEach((r) => {
       for (let c = 0; c < GRID_SIZE; c++) {
-        const obj = this.filledTileObjects[r][c];
-        if (obj && !targetsToAnimate.includes(obj)) {
-          targetsToAnimate.push(obj);
+        const key = `${r}-${c}`;
+        if (!uniqueCellKeys.has(key)) {
+          uniqueCellKeys.add(key);
+          const obj = this.filledTileObjects[r][c];
+          if (obj) {
+            uniqueCells.push({ row: r, col: c, obj });
+          }
         }
       }
     });
 
     cols.forEach((c) => {
       for (let r = 0; r < GRID_SIZE; r++) {
-        const obj = this.filledTileObjects[r][c];
-        if (obj && !targetsToAnimate.includes(obj)) {
-          targetsToAnimate.push(obj);
+        const key = `${r}-${c}`;
+        if (!uniqueCellKeys.has(key)) {
+          uniqueCellKeys.add(key);
+          const obj = this.filledTileObjects[r][c];
+          if (obj) {
+            uniqueCells.push({ row: r, col: c, obj });
+          }
         }
       }
     });
 
-    if (targetsToAnimate.length === 0) {
+    if (uniqueCells.length === 0) {
       if (onComplete) onComplete();
       return;
     }
 
-    // Tween scale & alpha out (250ms per Doc 04)
-    this.scene.tweens.add({
-      targets: targetsToAnimate,
-      alpha: 0,
-      scale: 0.2,
-      duration: LINE_CLEAR_ANIM_DURATION,
-      ease: 'Back.easeIn',
-      onComplete: () => {
-        this.boardManager.clearLines(rows, cols);
-        this.updateFilledTiles();
-        if (onComplete) onComplete();
-      }
+    const theme = this.themeManager.getActiveColors();
+    const particleColor = Phaser.Display.Color.HexStringToColor(theme.accent).color;
+
+    // Step 1: 50ms Flash Overlay
+    this.flashOverlayGraphics.clear();
+    this.flashOverlayGraphics.fillStyle(0xffffff, 0.7);
+    uniqueCells.forEach(({ row, col }) => {
+      const pos = this.boardManager.getCellTopLeft(row, col);
+      this.flashOverlayGraphics.fillRoundedRect(pos.x, pos.y, CELL_SIZE, CELL_SIZE, CELL_RADIUS);
     });
+
+    this.scene.time.delayedCall(LINE_FLASH_DURATION, () => {
+      this.flashOverlayGraphics.clear();
+
+      // Step 2: Spawn 8-10 lightweight particle sparks per unique cell
+      uniqueCells.forEach(({ row, col }) => {
+        const center = this.boardManager.getCellCenter(row, col);
+        this.spawnCellSparks(center.x, center.y, particleColor);
+      });
+
+      // Step 3: Shrink (100ms) & Fade (50ms)
+      const tileObjects = uniqueCells.map((c) => c.obj);
+      this.scene.tweens.add({
+        targets: tileObjects,
+        scale: 0.1,
+        alpha: 0,
+        duration: LINE_SHRINK_DURATION + LINE_FADE_DURATION,
+        ease: 'Quad.easeIn',
+        onComplete: () => {
+          this.boardManager.clearLines(rows, cols);
+          this.updateFilledTiles();
+          if (onComplete) onComplete();
+        }
+      });
+    });
+  }
+
+  /**
+   * Lightweight particle sparks (8-10 particles, 250ms lifetime).
+   */
+  private spawnCellSparks(x: number, y: number, color: number): void {
+    const count = 8;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.4 - 0.2);
+      const speed = Math.random() * 35 + 25;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+
+      const spark = this.scene.add.graphics();
+      spark.fillStyle(color, 1);
+      spark.fillCircle(0, 0, Math.random() * 2.5 + 2);
+      spark.x = x;
+      spark.y = y;
+
+      this.particlesContainer.add(spark);
+
+      this.scene.tweens.add({
+        targets: spark,
+        x: x + vx,
+        y: y + vy,
+        alpha: 0,
+        scale: 0.2,
+        duration: 250,
+        ease: 'Quad.easeOut',
+        onComplete: () => {
+          spark.destroy();
+        }
+      });
+    }
   }
 
   public destroy(): void {

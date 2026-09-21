@@ -11,8 +11,9 @@ import { PieceDefinition } from '../../types/Piece';
 
 /**
  * TRAY VIEW COMPONENT
- * Manages the 3-piece batch tray lifecycle, touch drag-and-drop, finger offset, and grid snapping.
- * Defined in Document 02, 04 & Milestone 2/3.
+ * Manages the 3-piece batch tray lifecycle, touch drag-and-drop, finger offset,
+ * input locking, and grid snapping.
+ * Defined in Document 02, 04 & Milestone 2/3/4.
  */
 export class TrayView {
   private scene: Phaser.Scene;
@@ -24,14 +25,19 @@ export class TrayView {
 
   private pieceViews: (PieceView | null)[];
   private isDragging: boolean = false;
+  private isLocked: boolean = false;
   private draggedPiece: PieceView | null = null;
   private draggedSlotIndex: number = -1;
   private dragOriginX: number = 0;
   private dragOriginY: number = 0;
 
-  private onPlacementCallback?: (piece: PieceDefinition, row: number, col: number) => void;
+  private onPlacementCallback?: (piece: PieceDefinition, row: number, col: number, onComplete: () => void) => void;
 
-  constructor(scene: Phaser.Scene, boardView: BoardView, onPlacement?: (piece: PieceDefinition, row: number, col: number) => void) {
+  constructor(
+    scene: Phaser.Scene,
+    boardView: BoardView,
+    onPlacement?: (piece: PieceDefinition, row: number, col: number, onComplete: () => void) => void
+  ) {
     this.scene = scene;
     this.boardView = boardView;
     this.onPlacementCallback = onPlacement;
@@ -45,6 +51,10 @@ export class TrayView {
     this.spawnBatch();
   }
 
+  public setLocked(locked: boolean): void {
+    this.isLocked = locked;
+  }
+
   /**
    * Spawns PieceViews for current active batch in PieceManager.
    */
@@ -52,7 +62,6 @@ export class TrayView {
     const activeSlots = this.pieceManager.getActiveSlots();
 
     for (let i = 0; i < 3; i++) {
-      // Clear existing view if any
       if (this.pieceViews[i]) {
         this.pieceViews[i]?.destroy();
         this.pieceViews[i] = null;
@@ -88,7 +97,7 @@ export class TrayView {
     pieceView.setInteractive({ useHandCursor: true });
 
     pieceView.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (this.isDragging) return;
+      if (this.isDragging || this.isLocked) return;
 
       this.isDragging = true;
       this.draggedPiece = pieceView;
@@ -114,7 +123,6 @@ export class TrayView {
       this.updateGhostPreview(pieceView);
     });
 
-    // Global drag tracking on the scene
     this.scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       if (!this.isDragging || !this.draggedPiece || this.draggedPiece !== pieceView) return;
 
@@ -149,11 +157,9 @@ export class TrayView {
    */
   private calculateTargetGridPosition(pieceView: PieceView): { row: number; col: number } | null {
     const dims = pieceView.getShapeDimensions();
-    // Top-left world coordinate of the floating shape
     const shapeTopLeftX = pieceView.x - dims.width / 2;
     const shapeTopLeftY = pieceView.y - dims.height / 2;
 
-    // Center of the first tile (row 0, col 0) in the shape
     const firstTileCenterX = shapeTopLeftX + 22.5;
     const firstTileCenterY = shapeTopLeftY + 22.5;
 
@@ -200,16 +206,24 @@ export class TrayView {
           this.boardView.clearGhostPreview();
           this.resetDragState();
 
+          // 6. Notify placement & coordinate line clearing lifecycle
           if (this.onPlacementCallback) {
-            this.onPlacementCallback(pieceDef, target.row, target.col);
-          }
-
-          // 6. Check if Tray is Empty -> Refill with fresh 3-piece batch!
-          if (this.pieceManager.isTrayEmpty()) {
-            this.pieceManager.refillIfEmpty();
-            this.scene.time.delayedCall(120, () => {
-              this.spawnBatch();
+            this.onPlacementCallback(pieceDef, target.row, target.col, () => {
+              // 7. Check if Tray is Empty -> Refill with fresh 3-piece batch after lines finish!
+              if (this.pieceManager.isTrayEmpty()) {
+                this.pieceManager.refillIfEmpty();
+                this.scene.time.delayedCall(80, () => {
+                  this.spawnBatch();
+                });
+              }
             });
+          } else {
+            if (this.pieceManager.isTrayEmpty()) {
+              this.pieceManager.refillIfEmpty();
+              this.scene.time.delayedCall(80, () => {
+                this.spawnBatch();
+              });
+            }
           }
         }
       });
