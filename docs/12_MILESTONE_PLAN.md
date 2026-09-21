@@ -1,0 +1,721 @@
+# BLOCKZU
+## Document 12 — Milestone Plan
+### Version 1.0
+
+**Project Name:** Blockzu  
+**Genre:** Casual Puzzle / Block Puzzle  
+**Platform:** Web, PWA, Android  
+**Developer:** PriorApp Games  
+**Status:** Approved
+
+---
+
+# 1. Purpose
+
+This document defines the official milestone plan for Blockzu Version 1.0.
+
+The milestone system is used to:
+
+- Track Development Progress
+- Measure Completion
+- Define Deliverables
+- Validate Release Readiness
+
+---
+
+# 2. Development Overview
+
+```text
+M0 → Project Setup
+
+M1 → Board System
+
+M2 → Piece System
+
+M3 → Placement System
+
+M4 → Scoring & Line Clear
+
+M5 → Game Flow
+
+M6 → UI System
+
+M7 → Progression System
+
+M8 → Save System
+
+M9 → Monetization
+
+M10 → Polish
+
+M11 → QA & Testing
+
+M12 → Release
+```
+
+---
+
+# M0 — Project Setup
+
+## Goal
+
+Create the development foundation.
+
+### Deliverables
+
+```text
+GitHub Repository
+
+Phaser Project Setup
+
+TypeScript Setup
+
+PWA Setup
+
+Folder Structure
+
+ESLint
+
+Prettier
+```
+
+### Acceptance Criteria
+
+```text
+Project Builds Successfully
+
+Runs In Browser
+
+GitHub Connected
+
+Code Standards Configured
+```
+
+### Estimated Time
+
+```text
+1–2 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M1 — Board System
+
+## Goal
+
+Build the game board.
+
+### Deliverables
+
+```text
+8x8 Grid
+
+Board Renderer
+
+Board State Management
+
+Cell Components
+```
+
+### Acceptance Criteria
+
+```text
+Board Displays Correctly
+
+Cells Track Occupied State
+
+Board Updates In Real Time
+```
+
+### Estimated Time
+
+```text
+2 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M2 — Piece System
+
+## Goal
+
+Implement all game pieces.
+
+### Deliverables
+
+```text
+Shape Definitions
+
+Piece Generator
+
+Random Piece Selection
+
+Piece Queue
+```
+
+### Acceptance Criteria
+
+```text
+All Shapes Render Correctly
+
+Pieces Spawn Correctly
+
+Randomization Works
+```
+
+### Estimated Time
+
+```text
+2 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M3 — Placement System
+
+## Goal
+
+Allow players to place pieces.
+
+### Deliverables
+
+```text
+Drag & Drop
+
+Touch Controls
+
+Mouse Controls
+
+Placement Preview
+
+Validation System
+```
+
+### Acceptance Criteria
+
+```text
+Valid Placements Accepted
+
+Invalid Placements Rejected
+
+Smooth Drag Experience
+```
+
+### Estimated Time
+
+```text
+3 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M4 — Scoring & Line Clear
+
+## Goal
+
+Implement game mechanics.
+
+### Deliverables
+
+```text
+Scoring Engine
+
+Row Detection
+
+Column Detection
+
+Line Clearing
+
+Combo System
+```
+
+### Acceptance Criteria
+
+```text
+Rows Clear Correctly
+
+Columns Clear Correctly
+
+Scores Update Correctly
+
+Combo Logic Functions
+```
+
+### Estimated Time
+
+```text
+3 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M5 — Game Flow
+
+## Goal
+
+Create complete gameplay loop.
+
+### Deliverables
+
+```text
+Game Over Detection
+
+Restart System
+
+Best Score Tracking
+
+Session Lifecycle
+```
+
+### Acceptance Criteria
+
+```text
+Game Ends Properly
+
+Restart Works
+
+Best Score Saves
+```
+
+### Estimated Time
+
+```text
+2 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M6 — UI System
+
+## Goal
+
+Build production-ready UI.
+
+### Deliverables
+
+```text
+Main Menu
+
+Gameplay HUD
+
+Game Over Screen
+
+Settings Screen
+
+Statistics Screen
+```
+
+### Acceptance Criteria
+
+```text
+All Screens Functional
+
+Responsive Design
+
+Portrait Layout Stable
+```
+
+### Estimated Time
+
+```text
+3 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M7 — Progression System
+
+## Goal
+
+Implement retention features.
+
+### Deliverables
+
+```text
+Achievements
+
+Missions
+
+Theme Unlocks
+
+Reward System
+```
+
+### Acceptance Criteria
+
+```text
+Achievements Track Progress
+
+Missions Generate Correctly
+
+Themes Unlock Correctly
+```
+
+### Estimated Time
+
+```text
+3 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M8 — Save System
+
+## Goal
+
+Persist player data.
+
+### Deliverables
+
+```text
+Save Manager
+
+Load Manager
+
+Reset Progress
+
+Statistics Persistence
+
+Migration Support
+```
+
+### Acceptance Criteria
+
+```text
+Progress Survives Restart
+
+Data Loads Correctly
+
+Reset Works Correctly
+```
+
+### Estimated Time
+
+```text
+2 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M9 — Monetization
+
+## Goal
+
+Integrate advertisements.
+
+### Deliverables
+
+```text
+AdMob Banner Ads
+
+Interstitial Ads
+
+Rewarded Ads
+
+AdSense Integration
+```
+
+### Acceptance Criteria
+
+```text
+Ads Display Correctly
+
+Rewarded Ads Grant Rewards
+
+Frequency Rules Followed
+```
+
+### Estimated Time
+
+```text
+2 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M10 — Polish
+
+## Goal
+
+Improve game feel and quality.
+
+### Deliverables
+
+```text
+Animations
+
+Particles
+
+Audio
+
+Transitions
+
+Visual Feedback
+```
+
+### Acceptance Criteria
+
+```text
+60 FPS
+
+Smooth Animations
+
+Professional Feel
+```
+
+### Estimated Time
+
+```text
+3 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M11 — QA & Testing
+
+## Goal
+
+Prepare for release.
+
+### Deliverables
+
+```text
+Gameplay Testing
+
+Device Testing
+
+Browser Testing
+
+Save Testing
+
+Ad Testing
+
+Performance Testing
+```
+
+### Acceptance Criteria
+
+```text
+0 Critical Bugs
+
+0 Major Bugs
+
+Stable Performance
+```
+
+### Estimated Time
+
+```text
+4 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# M12 — Release
+
+## Goal
+
+Launch Blockzu publicly.
+
+### Deliverables
+
+```text
+Play Store Listing
+
+Store Assets
+
+Android AAB
+
+Vercel Deployment
+
+PWA Release
+```
+
+### Acceptance Criteria
+
+```text
+Game Publicly Available
+
+Play Store Approved
+
+Website Live
+
+PWA Installable
+```
+
+### Estimated Time
+
+```text
+1–2 Days
+```
+
+### Status
+
+```text
+⬜ Not Started
+```
+
+---
+
+# Project Timeline Summary
+
+| Milestone | Name | Duration |
+|------------|--------|----------|
+| M0 | Project Setup | 1–2 Days |
+| M1 | Board System | 2 Days |
+| M2 | Piece System | 2 Days |
+| M3 | Placement System | 3 Days |
+| M4 | Scoring & Line Clear | 3 Days |
+| M5 | Game Flow | 2 Days |
+| M6 | UI System | 3 Days |
+| M7 | Progression System | 3 Days |
+| M8 | Save System | 2 Days |
+| M9 | Monetization | 2 Days |
+| M10 | Polish | 3 Days |
+| M11 | QA & Testing | 4 Days |
+| M12 | Release | 1–2 Days |
+
+---
+
+# Total Estimated Duration
+
+```text
+30–32 Days
+```
+
+For a single developer working consistently.
+
+---
+
+# Completion Criteria
+
+Blockzu Version 1.0 is complete when:
+
+```text
+✓ M0 Completed
+
+✓ M1 Completed
+
+✓ M2 Completed
+
+✓ M3 Completed
+
+✓ M4 Completed
+
+✓ M5 Completed
+
+✓ M6 Completed
+
+✓ M7 Completed
+
+✓ M8 Completed
+
+✓ M9 Completed
+
+✓ M10 Completed
+
+✓ M11 Completed
+
+✓ M12 Completed
+```
+
+---
+
+# Milestone Tracking
+
+Use the following format during development:
+
+```text
+M0 Project Setup           ⬜
+M1 Board System            ⬜
+M2 Piece System            ⬜
+M3 Placement System        ⬜
+M4 Scoring & Line Clear    ⬜
+M5 Game Flow               ⬜
+M6 UI System               ⬜
+M7 Progression System      ⬜
+M8 Save System             ⬜
+M9 Monetization            ⬜
+M10 Polish                 ⬜
+M11 QA & Testing           ⬜
+M12 Release                ⬜
+```
+
+---
+
+**Document Status:** APPROVED  
+**Version:** 1.0  
+**Owner:** PriorApp Games  
+**Project:** Blockzu
