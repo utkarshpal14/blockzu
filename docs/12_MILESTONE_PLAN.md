@@ -316,7 +316,7 @@ Best Score Saves
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---
@@ -703,7 +703,7 @@ M1 Board System            ✅
 M2 Piece System            ✅
 M3 Placement System        ✅
 M4 Scoring & Line Clear    ✅
-M5 Game Flow               ⬜
+M5 Game Flow               ✅
 M6 UI System               ⬜
 M7 Progression System      ⬜
 M8 Save System             ⬜

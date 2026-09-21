@@ -8,13 +8,14 @@ import { PieceManager } from '../managers/PieceManager';
 import { BoardView } from '../ui/components/BoardView';
 import { TrayView } from '../ui/components/TrayView';
 import { ClearSystem } from '../systems/ClearSystem';
+import { GameFlowSystem, SessionStats } from '../systems/GameFlowSystem';
 import { FloatingText } from '../ui/components/FloatingText';
 import { PieceDefinition } from '../types/Piece';
 
 /**
  * GAME SCENE (Core Gameplay Loop)
- * Coordinates HUD, BoardView, TrayView, ClearSystem, and real-time scoring.
- * Defined in Document 02, 03, 04.
+ * Coordinates HUD, BoardView, TrayView, ClearSystem, GameFlowSystem, and real-time lifecycle.
+ * Defined in Document 02, 03, 04, 05.
  */
 export class GameScene extends Phaser.Scene {
   private boardManager!: BoardManager;
@@ -22,9 +23,15 @@ export class GameScene extends Phaser.Scene {
   private boardView!: BoardView;
   private trayView!: TrayView;
   private clearSystem!: ClearSystem;
+  private gameFlowSystem!: GameFlowSystem;
 
   private scoreText!: Phaser.GameObjects.Text;
   private bestScoreText!: Phaser.GameObjects.Text;
+
+  // Session Statistics
+  private sessionLinesCleared: number = 0;
+  private sessionBlocksPlaced: number = 0;
+  private sessionMaxCombo: number = 0;
 
   constructor() {
     super('GameScene');
@@ -36,6 +43,11 @@ export class GameScene extends Phaser.Scene {
     const theme = ThemeManager.getInstance().getActiveColors();
     const scoreManager = ScoreManager.getInstance();
     const audioManager = AudioManager.getInstance();
+
+    // Reset session trackers
+    this.sessionLinesCleared = 0;
+    this.sessionBlocksPlaced = 0;
+    this.sessionMaxCombo = 0;
 
     this.boardManager = BoardManager.getInstance();
     this.boardManager.reset();
@@ -54,8 +66,9 @@ export class GameScene extends Phaser.Scene {
     // 8x8 Board View
     this.boardView = new BoardView(this);
 
-    // Clear & Combo System
+    // Systems
     this.clearSystem = new ClearSystem(this, this.boardView);
+    this.gameFlowSystem = new GameFlowSystem(this);
 
     // 3-Piece Tray View
     this.trayView = new TrayView(
@@ -95,18 +108,29 @@ export class GameScene extends Phaser.Scene {
     return this.clearSystem;
   }
 
+  public getSessionStats(): SessionStats {
+    const scoreManager = ScoreManager.getInstance();
+    return {
+      score: scoreManager.getCurrentScore(),
+      linesCleared: this.sessionLinesCleared,
+      blocksPlaced: this.sessionBlocksPlaced,
+      maxCombo: this.sessionMaxCombo
+    };
+  }
+
   /**
-   * Coordinated placement lifecycle:
-   * 1. Lock input
-   * 2. Show placement score floater (+N)
-   * 3. Evaluate lines with ClearSystem (scoring, screen shake, combo text, fast 200ms clear)
-   * 4. Unlock input and trigger tray refill
+   * Coordinated Placement Lifecycle:
+   * 1. Lock Input
+   * 2. Increment stats & spawn placement score floater (+N)
+   * 3. Clear lines via ClearSystem (flash 50ms -> shrink 100ms -> fade 50ms)
+   * 4. Trigger tray refill if empty
+   * 5. Run Game Over Solver on the updated & cleared board state
+   * 6. Unlock Input if moves exist OR trigger Game Over if 0 moves exist!
    */
   private handlePiecePlaced(piece: PieceDefinition, row: number, col: number, onComplete: () => void) {
-    const scoreManager = ScoreManager.getInstance();
-
     // 1. Lock Input
     this.trayView.setLocked(true);
+    this.sessionBlocksPlaced += piece.blockCount;
 
     // 2. Update HUD
     this.updateHUD();
@@ -123,12 +147,24 @@ export class GameScene extends Phaser.Scene {
     // 4. Evaluate Line Clears & Combos
     this.clearSystem.evaluateAndClearLines((result) => {
       if (result.hasCleared) {
+        this.sessionLinesCleared += result.linesCleared;
+        this.sessionMaxCombo = Math.max(this.sessionMaxCombo, result.linesCleared);
         this.updateHUD();
       }
 
-      // 5. Unlock Input & Proceed
-      this.trayView.setLocked(false);
+      // 5. Trigger Tray Refill (if tray was emptied by this placement)
       onComplete();
+
+      // 6. Move Availability Solver (Checks remaining pieces against updated board)
+      this.time.delayedCall(100, () => {
+        if (this.gameFlowSystem.isGameOver()) {
+          this.trayView.setLocked(true);
+          this.gameFlowSystem.triggerGameOver(this.getSessionStats());
+        } else {
+          // Moves available: Unlock input and continue playing!
+          this.trayView.setLocked(false);
+        }
+      });
     });
   }
 
