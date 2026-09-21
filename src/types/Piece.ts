@@ -1,29 +1,25 @@
 /**
- * PIECE DATA INTERFACES
+ * PIECE DATA INTERFACES (Data-Only Model)
+ * Rendering and styling are handled strictly in the View layer.
  */
 
 export type PieceMatrix = number[][];
 
-export type PieceCategory = 'single' | 'line' | 'square' | 'l_shape' | 't_shape' | 'z_shape';
-
-export interface Piece {
+export interface PieceDefinition {
   id: string;
   name: string;
-  category: PieceCategory;
-  shape: PieceMatrix;
-  color?: string;
-  blockSize: number;
+  cells: PieceMatrix;
+  weight: number;
+  blockCount: number;
 }
 
 export interface PlacedTile {
   row: number;
   col: number;
-  color: string;
+  color?: string;
 }
 
-export interface DragPieceState {
-  piece: Piece;
-  originTrayIndex: number;
-  startX: number;
-  startY: number;
+export interface TraySlotState {
+  slotIndex: number;
+  piece: PieceDefinition | null;
 }

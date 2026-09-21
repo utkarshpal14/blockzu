@@ -1,229 +1,235 @@
-import { Piece } from '../types/Piece';
+import { PieceDefinition } from '../types/Piece';
 
 /**
- * PIECE SHAPES CATALOG (19 Standard Polyominoes)
- * Defined in Document 02 (Game Design Document) & Document 03 (Technical Architecture).
+ * PIECE CATALOG (19 Standard Polyomino Shapes with Difficulty Weights)
+ * Pure data representation.
  */
-export const PIECE_CATALOG: Piece[] = [
-  // --- Single Block ---
+export const PIECE_CATALOG: PieceDefinition[] = [
+  // --- Single Block (High frequency) ---
   {
-    id: 'dot_1x1',
-    name: 'Dot',
-    category: 'single',
-    shape: [[1]],
-    blockSize: 1
+    id: 'single_1x1',
+    name: 'Single Dot',
+    cells: [[1]],
+    weight: 12,
+    blockCount: 1
   },
 
-  // --- Line Pieces (Horizontal & Vertical) ---
+  // --- 2-Block Lines ---
   {
     id: 'line_1x2',
     name: 'Line 2H',
-    category: 'line',
-    shape: [[1, 1]],
-    blockSize: 2
+    cells: [[1, 1]],
+    weight: 10,
+    blockCount: 2
   },
   {
     id: 'line_2x1',
     name: 'Line 2V',
-    category: 'line',
-    shape: [[1], [1]],
-    blockSize: 2
+    cells: [[1], [1]],
+    weight: 10,
+    blockCount: 2
   },
+
+  // --- 3-Block Lines ---
   {
     id: 'line_1x3',
     name: 'Line 3H',
-    category: 'line',
-    shape: [[1, 1, 1]],
-    blockSize: 3
+    cells: [[1, 1, 1]],
+    weight: 8,
+    blockCount: 3
   },
   {
     id: 'line_3x1',
     name: 'Line 3V',
-    category: 'line',
-    shape: [[1], [1], [1]],
-    blockSize: 3
+    cells: [[1], [1], [1]],
+    weight: 8,
+    blockCount: 3
   },
+
+  // --- 4-Block Lines ---
   {
     id: 'line_1x4',
     name: 'Line 4H',
-    category: 'line',
-    shape: [[1, 1, 1, 1]],
-    blockSize: 4
+    cells: [[1, 1, 1, 1]],
+    weight: 5,
+    blockCount: 4
   },
   {
     id: 'line_4x1',
     name: 'Line 4V',
-    category: 'line',
-    shape: [[1], [1], [1], [1]],
-    blockSize: 4
+    cells: [[1], [1], [1], [1]],
+    weight: 5,
+    blockCount: 4
   },
+
+  // --- 5-Block Lines ---
   {
     id: 'line_1x5',
     name: 'Line 5H',
-    category: 'line',
-    shape: [[1, 1, 1, 1, 1]],
-    blockSize: 5
+    cells: [[1, 1, 1, 1, 1]],
+    weight: 3,
+    blockCount: 5
   },
   {
     id: 'line_5x1',
     name: 'Line 5V',
-    category: 'line',
-    shape: [[1], [1], [1], [1], [1]],
-    blockSize: 5
+    cells: [[1], [1], [1], [1], [1]],
+    weight: 3,
+    blockCount: 5
   },
 
-  // --- Square Pieces ---
+  // --- Squares ---
   {
     id: 'square_2x2',
     name: 'Small Square',
-    category: 'square',
-    shape: [
+    cells: [
       [1, 1],
       [1, 1]
     ],
-    blockSize: 4
+    weight: 7,
+    blockCount: 4
   },
   {
     id: 'square_3x3',
     name: 'Large Square',
-    category: 'square',
-    shape: [
+    cells: [
       [1, 1, 1],
       [1, 1, 1],
       [1, 1, 1]
     ],
-    blockSize: 9
+    weight: 2,
+    blockCount: 9
   },
 
-  // --- L Pieces (All 4 Orientations) ---
+  // --- L-Shapes (4 Rotations) ---
   {
     id: 'l_shape_1',
     name: 'L-Shape 1',
-    category: 'l_shape',
-    shape: [
+    cells: [
       [1, 0],
       [1, 0],
       [1, 1]
     ],
-    blockSize: 4
+    weight: 6,
+    blockCount: 4
   },
   {
     id: 'l_shape_2',
     name: 'L-Shape 2',
-    category: 'l_shape',
-    shape: [
+    cells: [
       [0, 1],
       [0, 1],
       [1, 1]
     ],
-    blockSize: 4
+    weight: 6,
+    blockCount: 4
   },
   {
     id: 'l_shape_3',
     name: 'L-Shape 3',
-    category: 'l_shape',
-    shape: [
+    cells: [
       [1, 1, 1],
       [1, 0, 0]
     ],
-    blockSize: 4
+    weight: 6,
+    blockCount: 4
   },
   {
     id: 'l_shape_4',
     name: 'L-Shape 4',
-    category: 'l_shape',
-    shape: [
+    cells: [
       [1, 1, 1],
       [0, 0, 1]
     ],
-    blockSize: 4
+    weight: 6,
+    blockCount: 4
   },
 
-  // --- T Pieces (All 4 Orientations) ---
+  // --- T-Shapes (4 Rotations) ---
   {
-    id: 't_shape_1',
+    id: 't_shape_down',
     name: 'T-Shape Down',
-    category: 't_shape',
-    shape: [
+    cells: [
       [1, 1, 1],
       [0, 1, 0]
     ],
-    blockSize: 4
+    weight: 5,
+    blockCount: 4
   },
   {
-    id: 't_shape_2',
+    id: 't_shape_up',
     name: 'T-Shape Up',
-    category: 't_shape',
-    shape: [
+    cells: [
       [0, 1, 0],
       [1, 1, 1]
     ],
-    blockSize: 4
+    weight: 5,
+    blockCount: 4
   },
   {
-    id: 't_shape_3',
+    id: 't_shape_right',
     name: 'T-Shape Right',
-    category: 't_shape',
-    shape: [
+    cells: [
       [1, 0],
       [1, 1],
       [1, 0]
     ],
-    blockSize: 4
+    weight: 5,
+    blockCount: 4
   },
   {
-    id: 't_shape_4',
+    id: 't_shape_left',
     name: 'T-Shape Left',
-    category: 't_shape',
-    shape: [
+    cells: [
       [0, 1],
       [1, 1],
       [0, 1]
     ],
-    blockSize: 4
+    weight: 5,
+    blockCount: 4
   },
 
-  // --- Z / S Pieces (All Orientations) ---
+  // --- Z / S Shapes (4 Rotations) ---
   {
-    id: 'z_shape_1',
+    id: 'z_shape_horiz',
     name: 'Z-Shape Horiz',
-    category: 'z_shape',
-    shape: [
+    cells: [
       [1, 1, 0],
       [0, 1, 1]
     ],
-    blockSize: 4
+    weight: 5,
+    blockCount: 4
   },
   {
-    id: 'z_shape_2',
+    id: 's_shape_horiz',
     name: 'S-Shape Horiz',
-    category: 'z_shape',
-    shape: [
+    cells: [
       [0, 1, 1],
       [1, 1, 0]
     ],
-    blockSize: 4
+    weight: 5,
+    blockCount: 4
   },
   {
-    id: 'z_shape_3',
+    id: 'z_shape_vert',
     name: 'Z-Shape Vert',
-    category: 'z_shape',
-    shape: [
+    cells: [
       [1, 0],
       [1, 1],
       [0, 1]
     ],
-    blockSize: 4
+    weight: 4,
+    blockCount: 4
   },
   {
-    id: 'z_shape_4',
+    id: 's_shape_vert',
     name: 'S-Shape Vert',
-    category: 'z_shape',
-    shape: [
+    cells: [
       [0, 1],
       [1, 1],
       [1, 0]
     ],
-    blockSize: 4
+    weight: 4,
+    blockCount: 4
   }
 ];

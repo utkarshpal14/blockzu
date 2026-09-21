@@ -184,7 +184,7 @@ Randomization Works
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---
@@ -228,7 +228,7 @@ Smooth Drag Experience
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---
@@ -700,8 +700,8 @@ Use the following format during development:
 ```text
 M0 Project Setup           ✅
 M1 Board System            ✅
-M2 Piece System            ⬜
-M3 Placement System        ⬜
+M2 Piece System            ✅
+M3 Placement System        ✅
 M4 Scoring & Line Clear    ⬜
 M5 Game Flow               ⬜
 M6 UI System               ⬜

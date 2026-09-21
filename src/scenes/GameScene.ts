@@ -4,15 +4,21 @@ import { ThemeManager } from '../managers/ThemeManager';
 import { ScoreManager } from '../managers/ScoreManager';
 import { AudioManager } from '../managers/AudioManager';
 import { BoardManager } from '../managers/BoardManager';
+import { PieceManager } from '../managers/PieceManager';
 import { BoardView } from '../ui/components/BoardView';
+import { TrayView } from '../ui/components/TrayView';
+import { PieceDefinition } from '../types/Piece';
 
 /**
  * GAME SCENE (Core Gameplay Loop)
+ * Coordinates the HUD, BoardView, TrayView, and placement lifecycle.
  * Defined in Document 02, 03, 04.
  */
 export class GameScene extends Phaser.Scene {
   private boardManager!: BoardManager;
+  private pieceManager!: PieceManager;
   private boardView!: BoardView;
+  private trayView!: TrayView;
   private scoreText!: Phaser.GameObjects.Text;
   private bestScoreText!: Phaser.GameObjects.Text;
 
@@ -29,6 +35,10 @@ export class GameScene extends Phaser.Scene {
 
     this.boardManager = BoardManager.getInstance();
     this.boardManager.reset();
+
+    this.pieceManager = PieceManager.getInstance();
+    this.pieceManager.reset();
+
     scoreManager.resetCurrentScore();
 
     // Background
@@ -39,6 +49,11 @@ export class GameScene extends Phaser.Scene {
 
     // 8x8 Board View
     this.boardView = new BoardView(this);
+
+    // 3-Piece Tray View with Placement Callback
+    this.trayView = new TrayView(this, this.boardView, (piece: PieceDefinition, row: number, col: number) => {
+      this.handlePiecePlaced(piece, row, col);
+    });
 
     // Home / Menu button
     const homeBtn = this.add.text(40, 48, '←', {
@@ -59,6 +74,38 @@ export class GameScene extends Phaser.Scene {
 
   public getBoardManager(): BoardManager {
     return this.boardManager;
+  }
+
+  public getTrayView(): TrayView {
+    return this.trayView;
+  }
+
+  private handlePiecePlaced(piece: PieceDefinition, row: number, col: number) {
+    const scoreManager = ScoreManager.getInstance();
+    const theme = ThemeManager.getInstance().getActiveColors();
+
+    // 1. Update HUD scores
+    this.scoreText.setText(`${scoreManager.getCurrentScore()}`);
+    this.bestScoreText.setText(`${scoreManager.getBestScore()}`);
+
+    // 2. Score Pop-up effect at placement position
+    const cellPos = this.boardManager.getCellCenter(row, col);
+    const popup = this.add.text(cellPos.x, cellPos.y, `+${piece.blockCount}`, {
+      fontFamily: 'Poppins, sans-serif',
+      fontSize: '22px',
+      fontStyle: 'bold',
+      color: theme.accent
+    }).setOrigin(0.5).setDepth(200);
+
+    this.tweens.add({
+      targets: popup,
+      y: cellPos.y - 35,
+      alpha: 0,
+      scale: 1.3,
+      duration: 600,
+      ease: 'Quad.easeOut',
+      onComplete: () => popup.destroy()
+    });
   }
 
   private createHUD(width: number, theme: any) {

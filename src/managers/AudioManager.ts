@@ -45,8 +45,16 @@ export class AudioManager {
     return nextState;
   }
 
+  public playPickup() {
+    this.audioService.playPickupSound();
+  }
+
   public playPlace() {
     this.audioService.playPlaceSound();
+  }
+
+  public playInvalid() {
+    this.audioService.playInvalidSound();
   }
 
   public playLineClear(comboCount: number = 1) {
