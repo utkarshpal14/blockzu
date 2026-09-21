@@ -1,467 +1,617 @@
 # BLOCKZU
-## Document 02 — Game Design Document (GDD)
-### Version 2.1 (Revised)
+## Document 03 — Technical Architecture
+### Version 1.1 (Revised)
 
 **Project Name:** Blockzu  
 **Genre:** Casual Puzzle / Block Puzzle  
 **Platform:** Web, PWA, Android  
 **Developer:** PriorApp Games  
-**Status:** DESIGN FROZEN
+**Technology Stack:** Phaser 3 + TypeScript + Vite + Capacitor  
+**Status:** Architecture Frozen
 
 ---
 
-> **Revision note (v2.1):** Section 16 (Theme System) previously listed only 4 launch themes (Classic, Dark, Neon, Nature), which contradicted Document 05's fully-priced 7-theme + secret theme economy, and Document 04's UI spec. This revision updates Section 16 to match the full theme economy — Blockzu now launches with **7 purchasable themes plus 1 secret theme**, consistent across all documents.
+> **Revision note (v1.1):** This document previously defined its own version of the `PlayerData` interface (Section 12) that conflicted with Document 07's version (different fields, incompatible types). That duplicate has been removed — Section 12 now references Document 07, which is the canonical source for all save-related data models. The `Theme` interface in Section 16 has been kept (it serves a different purpose than `ThemeData` — see note in that section) but the launch theme list has been updated to match the full 7-theme + secret economy defined in Document 05.
 
 ---
 
 # 1. Purpose
 
-This document defines the complete gameplay design for Blockzu Version 1.0.
+This document defines the complete technical architecture of Blockzu.
 
-All gameplay systems, balancing decisions, progression systems, monetization rules, and player experience goals are defined here.
+It serves as the engineering blueprint for:
 
-Any future gameplay change must update this document before implementation.
+- Development
+- Testing
+- Deployment
+- Scaling
+- Maintenance
 
----
-
-# 2. Game Overview
-
-Blockzu is an endless block puzzle game where players strategically place block pieces onto an 8×8 board.
-
-The objective is to:
-
-- Place blocks
-- Clear rows and columns
-- Create combos
-- Earn high scores
-- Unlock rewards
-- Complete missions
-- Progress through achievements
-
-The game continues until no available piece can fit on the board.
+All implementation should follow this architecture.
 
 ---
 
-# 3. Core Design Pillars
+# 2. Technology Stack
 
-## Pillar 1 — Easy To Learn
-
-Players should understand the rules within 30 seconds.
-
-No tutorial is required.
-
----
-
-## Pillar 2 — Satisfying
-
-Every placement, clear, and combo should feel rewarding.
-
-Visual and audio feedback are critical.
-
----
-
-## Pillar 3 — Endless Replayability
-
-There are no levels.
-
-Challenge comes from:
-
-- Random pieces
-- Board management
-- Strategic planning
-
----
-
-## Pillar 4 — Accessible Everywhere
-
-Playable on:
-
-- Web
-- PWA
-- Android
-
-Without accounts or internet requirements.
-
----
-
-# 4. Core Gameplay Loop
+## Core Game Engine
 
 ```text
-Start Game
-    ↓
-Receive 3 Pieces
-    ↓
-Drag Piece
-    ↓
-Validate Placement
-    ↓
-Place Piece
-    ↓
-Check Line Clears
-    ↓
-Award Points
-    ↓
-Check Combo
-    ↓
-Generate New Pieces
-    ↓
-Repeat
-    ↓
-No Possible Move
-    ↓
-Game Over
-```
-
----
-
-# 5. Board System
-
-## Board Size
-
-```text
-8 × 8
-```
-
-Total Cells:
-
-```text
-64
+Phaser 3
 ```
 
 Reason:
 
-- Industry proven
-- Casual-friendly
-- Better mobile experience
+- Lightweight
+- Excellent 2D support
+- Fast Web performance
+- Mobile friendly
+- Large ecosystem
 
 ---
 
-## Cell States
+## Programming Language
 
 ```text
-EMPTY
-FILLED
-```
-
----
-
-# 6. Piece System
-
-## Active Piece Tray
-
-The player always receives:
-
-```text
-3 Pieces
-```
-
-at a time.
-
-When all 3 pieces are used:
-
-```text
-Generate New Set
-```
-
----
-
-## Piece Rotation
-
-### Decision
-
-```text
-NO ROTATION
+TypeScript
 ```
 
 Reason:
 
-- Simpler controls
-- Easier balancing
-- Matches successful competitors
+- Type Safety
+- Better maintainability
+- Scalable codebase
+- Superior tooling
 
 ---
 
-# 7. Piece Library
-
-## Single Block
+## Build Tool
 
 ```text
-■
+Vite
+```
+
+Reason:
+
+- Fast development server
+- Fast builds
+- Excellent TypeScript support
+
+---
+
+## PWA
+
+```text
+vite-plugin-pwa
+```
+
+Purpose:
+
+- Offline support
+- Installable experience
+- iPhone compatibility
+
+---
+
+## Android Packaging
+
+```text
+Capacitor
+```
+
+Purpose:
+
+- Android builds
+- AdMob support
+- Native functionality
+
+---
+
+## Hosting
+
+```text
+Vercel
+```
+
+Purpose:
+
+- Free hosting
+- CI/CD deployment
+- Global CDN
+
+---
+
+## Version Control
+
+```text
+Git
+GitHub
 ```
 
 ---
 
-## Line Pieces
+# 3. High-Level System Architecture
 
 ```text
-■■
-
-■■■
-
-■■■■
-
-■■■■■
-```
-
-Horizontal and vertical variants.
-
----
-
-## Square Pieces
-
-### Small Square
-
-```text
-■■
-■■
-```
-
-### Large Square
-
-```text
-■■■
-■■■
-■■■
+App
+ │
+ ├── Scenes
+ │
+ ├── Managers
+ │
+ ├── Systems
+ │
+ ├── UI
+ │
+ ├── Data
+ │
+ └── Services
 ```
 
 ---
 
-## L Pieces
+# 4. Project Structure
 
 ```text
-■
-■
-■■
+blockzu/
+│
+├── docs/
+│
+├── public/
+│   ├── icons/
+│   ├── manifest.json
+│   └── robots.txt
+│
+├── src/
+│
+│   ├── assets/
+│   │   ├── audio/
+│   │   ├── images/
+│   │   ├── particles/
+│   │   └── themes/
+│   │
+│   ├── scenes/
+│   │   ├── BootScene.ts
+│   │   ├── LoadingScene.ts
+│   │   ├── MainMenuScene.ts
+│   │   ├── GameScene.ts
+│   │   ├── SettingsScene.ts
+│   │   └── GameOverScene.ts
+│   │
+│   ├── managers/
+│   │   ├── GameManager.ts
+│   │   ├── BoardManager.ts
+│   │   ├── PieceManager.ts
+│   │   ├── ScoreManager.ts
+│   │   ├── SaveManager.ts
+│   │   ├── ThemeManager.ts
+│   │   ├── MissionManager.ts
+│   │   ├── AchievementManager.ts
+│   │   ├── AudioManager.ts
+│   │   ├── AdManager.ts
+│   │   └── StatisticsManager.ts
+│   │
+│   ├── systems/
+│   │   ├── PlacementSystem.ts
+│   │   ├── ClearSystem.ts
+│   │   ├── ComboSystem.ts
+│   │   ├── MissionSystem.ts
+│   │   └── AchievementSystem.ts
+│   │
+│   ├── ui/
+│   │   ├── components/
+│   │   ├── dialogs/
+│   │   └── overlays/
+│   │
+│   ├── data/
+│   │   ├── achievements.ts
+│   │   ├── missions.ts
+│   │   ├── themes.ts
+│   │   └── pieces.ts
+│   │
+│   ├── services/
+│   │   ├── StorageService.ts
+│   │   ├── AdService.ts
+│   │   └── AudioService.ts
+│   │
+│   ├── constants/
+│   │   ├── colors.ts
+│   │   ├── config.ts
+│   │   └── gameplay.ts
+│   │
+│   ├── types/
+│   │   ├── PlayerData.ts
+│   │   ├── Statistics.ts
+│   │   ├── Achievement.ts
+│   │   ├── Mission.ts
+│   │   └── Theme.ts
+│   │
+│   ├── App.ts
+│   └── main.ts
+│
+├── capacitor.config.ts
+├── vite.config.ts
+├── tsconfig.json
+└── package.json
 ```
 
-All rotations included as separate shapes.
+> **Note:** `src/types/PlayerData.ts`, `Achievement.ts`, `Mission.ts` should implement the exact interfaces defined canonically in Document 07 (Save System), Sections 8–15. Do not redefine these shapes independently — import/reference the definitions from Document 07.
 
 ---
 
-## T Pieces
+# 5. Scene Architecture
+
+## Scene Flow
 
 ```text
-■■■
- ■
-```
-
-All rotations included.
-
----
-
-## Z Pieces
-
-```text
-■■
- ■■
-```
-
-All rotations included.
-
----
-
-## Future Shapes
-
-Excluded from Version 1.
-
----
-
-# 8. Placement Rules
-
-Valid placement requires:
-
-- Inside board boundaries
-- No overlapping blocks
-
-If invalid:
-
-```text
-Placement Rejected
-```
-
----
-
-# 9. Line Clearing System
-
-After every placement:
-
-Check:
-
-```text
-Rows
-Columns
-```
-
----
-
-## Row Clear
-
-```text
-■■■■■■■■
-```
-
-Clears instantly.
-
----
-
-## Column Clear
-
-```text
-■
-■
-■
-■
-■
-■
-■
-■
-```
-
-Clears instantly.
-
----
-
-## Multi-Clear
-
-Allowed.
-
-Examples:
-
-```text
-2 Rows
-
-3 Columns
-
-1 Row + 2 Columns
-```
-
-All clear simultaneously.
-
----
-
-# 10. Combo System
-
-A combo occurs when:
-
-```text
-2 or More Lines
-```
-
-are cleared from a single move.
-
----
-
-## Combo Levels
-
-### Normal
-
-```text
-1 Line
+BootScene
+     ↓
+LoadingScene
+     ↓
+MainMenuScene
+     ↓
+GameScene
+     ↓
+GameOverScene
 ```
 
 ---
 
-### Combo
+## BootScene
+
+Responsibilities:
+
+- Initialize game
+- Load configuration
+- Start loading scene
+
+---
+
+## LoadingScene
+
+Responsibilities:
+
+- Load assets
+- Display loading progress
+- Prepare resources
+
+---
+
+## MainMenuScene
+
+Responsibilities:
+
+- Start Game
+- Statistics
+- Themes
+- Settings
+
+---
+
+## GameScene
+
+Responsibilities:
+
+- Board rendering
+- Piece placement
+- Gameplay loop
+- Scoring
+- Missions
+
+---
+
+## GameOverScene
+
+Responsibilities:
+
+- Final Score
+- Best Score
+- Rewarded Continue
+- Restart
+
+---
+
+# 6. Manager Architecture
+
+Managers handle long-lived game state.
+
+---
+
+## GameManager
+
+Responsibilities:
 
 ```text
-2 Lines
+Game State
+Session Control
+Scene Coordination
 ```
 
 ---
 
-### Mega Combo
+## BoardManager
+
+Responsibilities:
 
 ```text
-3+ Lines
+Board Data
+Grid Updates
+Cell Occupancy
 ```
 
 ---
 
-# 11. Scoring System
+## PieceManager
 
-## Placement Score
-
-Each placed block:
+Responsibilities:
 
 ```text
-+1 Point
+Piece Generation
+Piece Queue
+Piece Placement
 ```
 
-Example:
+---
+
+## ScoreManager
+
+Responsibilities:
 
 ```text
-4 Block Piece
+Score Calculation
+Combo Bonuses
+Best Score Tracking
+```
+
+---
+
+## SaveManager
+
+Responsibilities:
+
+```text
+Save
+Load
+Reset
+Migration
+```
+
+Uses the canonical `PlayerData` structure defined in Document 07.
+
+---
+
+## ThemeManager
+
+Responsibilities:
+
+```text
+Theme Unlocks
+Theme Application
+Theme Persistence
+```
+
+---
+
+## MissionManager
+
+Responsibilities:
+
+```text
+Mission Generation
+Mission Progress
+Mission Rewards
+```
+
+---
+
+## AchievementManager
+
+Responsibilities:
+
+```text
+Achievement Tracking
+Unlock Logic
+Reward Distribution
+```
+
+---
+
+## AudioManager
+
+Responsibilities:
+
+```text
+Music
+Sound Effects
+Volume Control
+```
+
+---
+
+## AdManager
+
+Responsibilities:
+
+```text
+Banner Ads
+Interstitial Ads
+Rewarded Ads
+```
+
+---
+
+## StatisticsManager
+
+Responsibilities:
+
+```text
+Games Played
+Blocks Placed
+Lines Cleared
+Average Score
+```
+
+---
+
+# 7. Board Architecture
+
+## Grid Structure
+
+```typescript
+type CellState = 0 | 1;
+```
+
+---
+
+## Board Model
+
+```typescript
+const board: CellState[][] = [];
+```
+
+Dimensions:
+
+```text
+8 x 8
+```
+
+---
+
+# 8. Piece Architecture
+
+## Piece Model
+
+```typescript
+interface Piece {
+  id: string;
+  shape: number[][];
+  color: string;
+}
+```
+
+---
+
+## Piece Source
+
+```text
+pieces.ts
+```
+
+Contains:
+
+- Line Pieces
+- Square Pieces
+- L Pieces
+- T Pieces
+- Z Pieces
+
+---
+
+# 9. Placement System
+
+Responsibilities:
+
+```text
+Drag Validation
+Bounds Check
+Collision Check
+Placement Approval
+```
+
+---
+
+## Placement Rules
+
+Valid if:
+
+```text
+Inside Board
+No Overlap
+```
+
+---
+
+# 10. Line Clear System
+
+Checks after every move.
+
+---
+
+## Detect
+
+```text
+Full Rows
+Full Columns
+```
+
+---
+
+## Execute
+
+```text
+Clear Cells
+Trigger Animation
+Award Score
+```
+
+---
+
+# 11. Combo System
+
+Responsibilities:
+
+```text
+Combo Detection
+Combo Bonuses
+Combo Statistics
+```
+
+---
+
+## Formula
+
+```text
+Combo Bonus
 =
-4 Points
-```
-
----
-
-## Line Clear Score
-
-Each cleared line:
-
-```text
-+10 Points
-```
-
----
-
-## Combo Bonus
-
-Formula:
-
-```text
 Lines Cleared × 5
 ```
 
-Example:
+---
+
+# 12. Save System Architecture
+
+## Storage Layer
+
+Web:
 
 ```text
-3 Lines
+LocalStorage
+```
 
-30 Base
-15 Bonus
+Android:
 
-45 Total
+```text
+Capacitor Preferences
 ```
 
 ---
 
-# 12. Game Over System
-
-Game Over occurs when:
+## Save Key
 
 ```text
-No Remaining Piece
-Can Be Placed
-```
-
-on the board.
-
----
-
-## Validation Logic
-
-Check:
-
-- Piece 1
-- Piece 2
-- Piece 3
-
-Against every possible board position.
-
-If all fail:
-
-```text
-GAME OVER
+blockzu_player_data
 ```
 
 ---
 
-# 13. Statistics System
+## Player Data Model
 
-Track permanently:
+> **See Document 07, Section 8 for the canonical `PlayerData` interface.** This document previously defined a conflicting, incomplete version of this interface — that has been removed. All `PlayerData`, `AchievementData`, `MissionData`, `ThemeData`, `EconomyData`, `StatisticsData`, `ProfileData`, and `SettingsData` types used anywhere in the codebase must match Document 07 exactly.
+
+---
+
+# 13. Statistics Architecture
+
+Track:
 
 ```text
 Highest Score
@@ -473,77 +623,47 @@ Average Score
 Longest Combo
 ```
 
-Stored locally. See Document 07, Section 10 for the canonical `StatisticsData` interface.
+See Document 07, Section 10 (`StatisticsData`) for the canonical interface.
 
 ---
 
-# 14. Achievement System
+# 14. Achievement Architecture
 
-## Launch Goal
-
-```text
-20 Achievements
-```
-
-Full list defined in Document 05.
-
----
-
-## Score Achievements
+## Source
 
 ```text
-Score 100
-Score 500
-Score 1000
-Score 2500
-Score 5000
+data/achievements.ts
 ```
 
 ---
 
-## Gameplay Achievements
+## Progress Tracking
+
+Event-driven system.
+
+Example:
 
 ```text
-First Placement
-First Game
-Play 10 Games
-Play 50 Games
-Play 100 Games
+Score Changed
+↓
+Achievement Check
+↓
+Unlock
 ```
+
+Uses the canonical `AchievementData` interface from Document 07, Section 11.
 
 ---
 
-## Line Achievements
+# 15. Mission Architecture
+
+## Source
 
 ```text
-Clear 10 Lines
-Clear 50 Lines
-Clear 100 Lines
-Clear 500 Lines
+data/missions.ts
 ```
 
 ---
-
-## Combo Achievements
-
-```text
-First Combo
-10 Combos
-50 Combos
-```
-
----
-
-## Theme Achievements
-
-```text
-Unlock First Theme
-Unlock All Themes
-```
-
----
-
-# 15. Mission System
 
 ## Mission Count
 
@@ -553,204 +673,106 @@ Unlock All Themes
 
 ---
 
-## Mission Types
+## Refresh Logic
 
 ```text
-Score 300
+Mission Complete
+↓
+Generate New Mission
+```
 
-Score 500
+Uses the canonical `MissionData` interface from Document 07, Section 12.
 
-Clear 5 Lines
+---
 
-Clear 10 Lines
+# 16. Theme Architecture
 
-Play 3 Games
+Themes are data-driven.
 
-Get 2 Combos
+---
 
-Place 50 Blocks
+## Theme Structure (catalog entry — distinct from `ThemeData`)
+
+> **Important distinction:** The `Theme` interface below defines the *static catalog entry* for a theme — its id, display name, and color values, as authored by the developer in `data/themes.ts`. This is different from `ThemeData` in Document 07, Section 13, which is the *player's save-state record* of which themes are unlocked and which is currently active. Both interfaces are needed and are not in conflict — one is content data, the other is player data.
+
+```typescript
+interface Theme {
+  id: string;
+  name: string;
+  colors: ThemeColors;
+}
 ```
 
 ---
 
-## Rewards
+## Launch Themes
 
 ```text
-Coins
-Theme Progress
-Achievement Progress
+Classic
+Dark
+Neon
+Nature
+Ocean
+Sunset
+Galaxy
+Golden (secret — unlocked via Collector achievement, not directly purchasable)
 ```
 
----
-
-# 16. Theme System
-
-Blockzu launches with **7 purchasable themes plus 1 secret theme**, unlocked through a combination of score milestones and coin costs. Full pricing and coin costs are defined in Document 05, Section 27 (Theme Economy). Full color specifications are defined in Document 04, Section 23.
+Full unlock requirements and coin costs are defined in Document 05, Section 27. Full color specifications are defined in Document 04, Section 23.
 
 ---
 
-## Theme 1 — Classic
-
-Available by default. Free.
-
----
-
-## Theme 2 — Dark
-
-Unlock Score:
-
-```text
-500
-```
-
----
-
-## Theme 3 — Neon
-
-Unlock Score:
-
-```text
-1500
-```
-
----
-
-## Theme 4 — Nature
-
-Unlock Score:
-
-```text
-3000
-```
-
----
-
-## Theme 5 — Ocean
-
-Unlock Score:
-
-```text
-4000
-```
-
----
-
-## Theme 6 — Sunset
-
-Unlock Score:
-
-```text
-5000
-```
-
----
-
-## Theme 7 — Galaxy
-
-Unlock Score:
-
-```text
-7500
-```
-
----
-
-## Secret Theme — Golden
-
-Unlocked automatically via the "Collector" achievement (unlock all 7 other themes). Not directly purchasable with coins.
-
----
-
-# 17. Settings
-
-Players can control:
-
-```text
-Sound
-Music
-Vibration
-```
-
----
-
-# 18. Visual Style
-
-## Direction
-
-```text
-Modern
-Clean
-Minimal
-Colorful
-```
-
----
-
-## Goals
-
-- High readability
-- Casual appeal
-- Smooth animations
-- Mobile-first design
-
----
-
-# 19. Audio Design
-
-## Sound Effects
-
-### Placement
-
-Soft click.
-
-### Line Clear
-
-Satisfying pop.
-
-### Combo
-
-Enhanced reward sound.
-
-### Achievement
-
-Celebration sound.
-
-### Game Over
-
-Soft failure sound.
-
----
+# 17. Audio Architecture
 
 ## Music
 
-Version 1:
-
 ```text
-Simple Relaxing Loop
+Background Loop
 ```
 
-Music can be disabled.
+---
+
+## Sound Effects
+
+```text
+Placement
+Clear
+Combo
+Achievement
+Game Over
+Button Click
+```
 
 ---
 
-# 20. Advertisement System
+# 18. Advertisement Architecture
 
-Advertisements added after successful APK testing.
+## Platform Detection
+
+```text
+Web
+↓
+AdSense
+
+Android
+↓
+AdMob
+```
 
 ---
 
-## Android
-
-### Banner Ads
+## Banner Ads
 
 Locations:
 
-- Main Menu
-- Game Over Screen
+```text
+Main Menu
+Game Over
+```
 
 ---
 
-### Interstitial Ads
+## Interstitial Ads
 
 Frequency:
 
@@ -760,138 +782,265 @@ Every 4th Game Over
 
 ---
 
-### Rewarded Ads
+## Rewarded Ads
 
-Offer:
+Flow:
 
 ```text
+Game Over
+     ↓
 Watch Ad
-↓
+     ↓
 Continue Once
 ```
 
-Limit:
+---
+
+# 19. UI Architecture
+
+## Screens
 
 ```text
-1 Continue Per Game
+Main Menu
+Game
+Game Over
+Settings
+Statistics
+Themes
 ```
 
 ---
+
+## UI Philosophy
+
+```text
+Premium
+Modern
+Polished
+Mobile First
+```
+
+---
+
+# 20. State Management
+
+State is managed using managers.
+
+---
+
+## Global State
+
+```text
+Player Data
+Settings
+Themes
+Statistics
+```
+
+---
+
+## Session State
+
+```text
+Current Score
+Board
+Active Pieces
+Combo Count
+```
+
+---
+
+# 21. Asset Pipeline
+
+## Art Assets
+
+Format:
+
+```text
+PNG
+WebP
+```
+
+---
+
+## Audio Assets
+
+Format:
+
+```text
+MP3
+OGG
+```
+
+---
+
+## Optimization Rules
+
+```text
+Compress Images
+Lazy Load Assets
+Minimize Bundle Size
+```
+
+---
+
+# 22. Performance Targets
+
+## Mobile
+
+```text
+60 FPS Target
+```
+
+---
+
+## Initial Load
+
+```text
+Under 3 Seconds
+```
+
+---
+
+## Bundle Size Goal
+
+```text
+Under 5 MB
+```
+
+---
+
+# 23. Build Pipeline
+
+## Development
+
+```text
+npm run dev
+```
+
+---
+
+## Production
+
+```text
+npm run build
+```
+
+---
+
+## Android
+
+```text
+npm run build
+↓
+npx cap sync
+↓
+Android Studio
+↓
+APK / AAB
+```
+
+---
+
+# 24. Deployment Pipeline
 
 ## Web
 
-Google AdSense
-
-Locations:
-
 ```text
-Below Game Canvas
-
-Below Description
+GitHub
+   ↓
+Vercel
+   ↓
+blockzu.priorapp.co.in
 ```
 
-Never over gameplay.
-
 ---
 
-# 21. Save System
-
-Stored Locally.
-
-Data Saved:
+## Android
 
 ```text
-Best Score
-Statistics
-Achievements
-Themes
-Settings
-Mission Progress
+GitHub
+   ↓
+Build
+   ↓
+Android Studio
+   ↓
+Play Store
 ```
 
-See Document 07 for the canonical save data structure.
+---
+
+# 25. Coding Standards
+
+## Rules
+
+```text
+Strict TypeScript
+No Any Types
+Single Responsibility Principle
+Reusable Components
+Manager-Based Architecture
+```
 
 ---
 
-# 22. Included Features (Version 1.0)
+## Naming
 
-✅ Endless Mode
+```text
+PascalCase
+```
 
-✅ Statistics
+Example:
 
-✅ Achievements
-
-✅ Missions
-
-✅ Theme Unlocks (7 themes + 1 secret)
-
-✅ Sound Effects
-
-✅ Background Music
-
-✅ Save System
-
-✅ PWA Support
-
-✅ Android Support
-
-✅ AdMob
-
-✅ AdSense
-
-✅ Rewarded Continue
+```typescript
+ScoreManager.ts
+GameScene.ts
+ThemeManager.ts
+```
 
 ---
 
-# 23. Excluded Features (Version 1.0)
+## Data Model Rule
 
-❌ Multiplayer
-
-❌ User Accounts
-
-❌ Cloud Save
-
-❌ Global Leaderboards
-
-❌ Friends System
-
-❌ Online Events
-
-❌ Competitive Ranking
-
-❌ Backend Infrastructure
+```text
+All save-related interfaces (PlayerData, AchievementData, MissionData,
+ThemeData, EconomyData, StatisticsData, ProfileData, SettingsData)
+are defined ONLY in Document 07 (Save System) and imported/matched
+everywhere else. Do not redefine these shapes in other documents or files.
+```
 
 ---
 
-# 24. Release Definition
+# 26. Future Scalability
 
-Blockzu Version 1.0 is complete when:
+Architecture must support:
 
-- Core gameplay is stable
-- Achievements work
-- Missions work
-- Themes unlock correctly
-- Ads work correctly
-- Save system is reliable
-- Android build passes testing
-- Web build is deployed
-- No critical bugs remain
+```text
+Cloud Save
+Leaderboards
+Google Play Games
+More Themes
+More Achievements
+More Missions
+```
+
+without major rewrites.
 
 ---
 
-# 25. Development Freeze Notice
+# 27. Architecture Freeze
 
-The gameplay systems defined in this document are considered frozen.
+The technical architecture defined in this document is frozen for Version 1.0.
 
-Future changes require:
+Changes require:
 
-1. Design Review
+1. Architecture Review
 2. Documentation Update
-3. Development Approval
+3. Approval
 
 ---
 
 **Document Status:** APPROVED & FROZEN  
-**Version:** 2.1  
+**Version:** 1.1  
 **Owner:** PriorApp Games  
 **Project:** Blockzu
