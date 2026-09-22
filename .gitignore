@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Release builds & artifacts (Not tracked in git)
+release/
+release
