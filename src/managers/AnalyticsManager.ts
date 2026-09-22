@@ -1,5 +1,5 @@
 import { SaveManager } from './SaveManager';
-import { BetaAnalyticsData } from '../types/PlayerData';
+import { BetaAnalyticsData, MonetizationAnalyticsData } from '../types/PlayerData';
 
 export interface AnalyticsSummaryReport {
   metrics: {
@@ -15,6 +15,17 @@ export interface AnalyticsSummaryReport {
     sessionCount: number;
     lastSessionLengthSeconds: number;
   };
+  monetization: {
+    rewardedAdsStarted: number;
+    rewardedAdsCompleted: number;
+    rewardedAdsSkipped: number;
+    interstitialsShown: number;
+    freeCoinsClaimed: number;
+    revivesUsed: number;
+    admobEvents: number;
+    adsenseEvents: number;
+    completionRate: string;
+  };
   economy: {
     currentCoins: number;
     totalCoinsEarned: number;
@@ -23,7 +34,7 @@ export interface AnalyticsSummaryReport {
 }
 
 /**
- * ANALYTICS MANAGER (Milestone 11.5 — Beta Analytics)
+ * ANALYTICS MANAGER (Milestone 11.5 — Beta & Monetization Analytics)
  * Captures core player progression, monetization, and retention telemetry locally.
  * Pre-launch telemetry single source of truth.
  */
@@ -61,15 +72,45 @@ export class AnalyticsManager {
         sessionCount: 1,
         averageSessionLengthSeconds: data.metadata?.totalPlayTime || 0,
         lastSessionLengthSeconds: 0,
-        lastSessionTimestamp: Date.now()
+        lastSessionTimestamp: Date.now(),
+        monetization: {
+          rewardedAdsStarted: 0,
+          rewardedAdsCompleted: 0,
+          rewardedAdsSkipped: 0,
+          interstitialsShown: 0,
+          freeCoinsClaimed: 0,
+          revivesUsed: 0,
+          admobEvents: 0,
+          adsenseEvents: 0
+        }
       };
       this.saveManager.save();
     }
+
+    if (!data.analytics.monetization) {
+      data.analytics.monetization = {
+        rewardedAdsStarted: 0,
+        rewardedAdsCompleted: 0,
+        rewardedAdsSkipped: 0,
+        interstitialsShown: 0,
+        freeCoinsClaimed: 0,
+        revivesUsed: 0,
+        admobEvents: 0,
+        adsenseEvents: 0
+      };
+      this.saveManager.save();
+    }
+
     return data.analytics;
   }
 
   public getAnalytics(): BetaAnalyticsData {
     return this.ensureAnalyticsInitialized();
+  }
+
+  public getMonetizationData(): MonetizationAnalyticsData {
+    const analytics = this.ensureAnalyticsInitialized();
+    return analytics.monetization!;
   }
 
   /**
@@ -113,11 +154,61 @@ export class AnalyticsManager {
   public recordReviveUsed(): void {
     const analytics = this.getAnalytics();
     analytics.revivesUsed += 1;
+    if (analytics.monetization) {
+      analytics.monetization.revivesUsed += 1;
+    }
     this.saveManager.save();
   }
 
   /**
-   * 5. Session Length Tracking
+   * 5. Monetization Ad Events
+   */
+  public recordAdStarted(format: 'rewarded' | 'interstitial', network: 'admob' | 'adsense' | 'fallback'): void {
+    const mon = this.getMonetizationData();
+    if (format === 'rewarded') {
+      mon.rewardedAdsStarted += 1;
+    }
+    if (network === 'admob') {
+      mon.admobEvents += 1;
+    } else if (network === 'adsense') {
+      mon.adsenseEvents += 1;
+    }
+    this.saveManager.save();
+  }
+
+  public recordAdCompleted(
+    format: 'rewarded' | 'interstitial',
+    network: 'admob' | 'adsense' | 'fallback',
+    rewardType?: 'coins' | 'revive'
+  ): void {
+    const mon = this.getMonetizationData();
+    if (format === 'rewarded') {
+      mon.rewardedAdsCompleted += 1;
+      if (rewardType === 'coins') {
+        mon.freeCoinsClaimed += 1;
+      }
+    } else if (format === 'interstitial') {
+      mon.interstitialsShown += 1;
+    }
+
+    if (network === 'admob') {
+      mon.admobEvents += 1;
+    } else if (network === 'adsense') {
+      mon.adsenseEvents += 1;
+    }
+    this.saveManager.save();
+  }
+
+  public recordAdSkipped(format: 'rewarded' | 'interstitial'): void {
+    const mon = this.getMonetizationData();
+    if (format === 'rewarded') {
+      mon.rewardedAdsSkipped += 1;
+    }
+    this.saveManager.save();
+  }
+
+  /**
+   * 6. Session Length Tracking
    * Accrues active elapsed play time into lifetime and session stats.
    */
   public recordSessionTime(elapsedSeconds: number): void {
@@ -153,8 +244,13 @@ export class AnalyticsManager {
    */
   public getSummaryReport(): AnalyticsSummaryReport {
     const analytics = this.getAnalytics();
+    const mon = this.getMonetizationData();
     const economy = this.saveManager.getData().economy;
     const metadata = this.saveManager.getMetadata();
+
+    const completionRatePct = mon.rewardedAdsStarted > 0
+      ? `${Math.round((mon.rewardedAdsCompleted / mon.rewardedAdsStarted) * 100)}%`
+      : '100%';
 
     return {
       metrics: {
@@ -169,6 +265,17 @@ export class AnalyticsManager {
         averageSessionLengthFormatted: this.formatDuration(analytics.averageSessionLengthSeconds),
         sessionCount: analytics.sessionCount,
         lastSessionLengthSeconds: analytics.lastSessionLengthSeconds
+      },
+      monetization: {
+        rewardedAdsStarted: mon.rewardedAdsStarted,
+        rewardedAdsCompleted: mon.rewardedAdsCompleted,
+        rewardedAdsSkipped: mon.rewardedAdsSkipped,
+        interstitialsShown: mon.interstitialsShown,
+        freeCoinsClaimed: mon.freeCoinsClaimed,
+        revivesUsed: mon.revivesUsed,
+        admobEvents: mon.admobEvents,
+        adsenseEvents: mon.adsenseEvents,
+        completionRate: completionRatePct
       },
       economy: {
         currentCoins: economy.coins,

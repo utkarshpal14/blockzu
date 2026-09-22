@@ -3,8 +3,27 @@
  * Comprehensive Invariant & Exploit Test Suite
  */
 
-// Mock localStorage for Node.js environment
+// Mock browser environment for Node.js environment
 const memoryStorage: Record<string, string> = {};
+(globalThis as any).window = globalThis;
+(globalThis as any).window.addEventListener = () => {};
+(globalThis as any).window.removeEventListener = () => {};
+(globalThis as any).document = {
+  createElement: () => ({
+    getContext: () => null,
+    style: {}
+  }),
+  documentElement: { style: {} },
+  head: { appendChild: () => {} },
+  body: { appendChild: () => {} },
+  addEventListener: () => {},
+  removeEventListener: () => {}
+};
+try {
+  (globalThis.navigator as any).vibrate = () => true;
+} catch (e) {
+  // Ignore if immutable
+}
 (globalThis as any).localStorage = {
   getItem: (key: string) => memoryStorage[key] || null,
   setItem: (key: string, val: string) => { memoryStorage[key] = val; },
@@ -21,6 +40,8 @@ import { DailyRewardManager } from '../src/managers/DailyRewardManager';
 import { BoardManager } from '../src/managers/BoardManager';
 import { StatisticsManager } from '../src/managers/StatisticsManager';
 import { AnalyticsManager } from '../src/managers/AnalyticsManager';
+import { AdManager } from '../src/managers/AdManager';
+import { MONETIZATION_CONFIG } from '../src/constants/monetization';
 import { THEME_CATALOG } from '../src/data/themes';
 
 let passed = 0;
@@ -409,6 +430,50 @@ async function runAllTests() {
     assert(freshStorageLoad.analytics?.gamesPlayed === 3, 'Persisted gamesPlayed retained after storage reload');
     assert(freshStorageLoad.analytics?.themesPurchased === 1, 'Persisted themesPurchased retained after storage reload');
     assert(freshStorageLoad.analytics?.revivesUsed === 1, 'Persisted revivesUsed retained after storage reload');
+  }
+
+  // --------------------------------------------------------------------------
+  // TEST 9: DUAL-PLATFORM MONETIZATION & AD TELEMETRY INVARIANTS
+  // --------------------------------------------------------------------------
+  console.log('\n--- [TEST 9] Dual-Platform Monetization & Ad Telemetry ---');
+  {
+    saveManager.resetProgress();
+    const adManager = AdManager.getInstance();
+    const analyticsManager = AnalyticsManager.getInstance();
+
+    // 1. Config Invariants
+    assert(MONETIZATION_CONFIG.admob.appId.startsWith('ca-app-pub-'), 'AdMob App ID formatted with valid ca-app-pub prefix');
+    assert(MONETIZATION_CONFIG.admob.units.rewarded.includes('/'), 'AdMob Rewarded Unit ID contains slash separator');
+    assert(MONETIZATION_CONFIG.admob.units.interstitial.includes('/'), 'AdMob Interstitial Unit ID contains slash separator');
+    assert(MONETIZATION_CONFIG.admob.units.banner.includes('/'), 'AdMob Banner Unit ID contains slash separator');
+    assert(MONETIZATION_CONFIG.adsense.publisherId.startsWith('ca-pub-'), 'AdSense Publisher ID formatted with valid ca-pub prefix');
+    assert(MONETIZATION_CONFIG.rules.rewardedCoinsAmount === 50, 'Rewarded ad awards exactly 50 coins');
+    assert(MONETIZATION_CONFIG.rules.dailyRewardedAdLimit === 5, 'Daily rewarded ad limit is capped at 5 ads/day');
+    assert(MONETIZATION_CONFIG.rules.interstitialGameInterval === 4, 'Interstitial frequency is 4 games');
+    assert(MONETIZATION_CONFIG.rules.interstitialCooldownSeconds === 180, 'Interstitial cooldown is 180s (3 minutes)');
+
+    // 2. Monetization Telemetry Flow
+    analyticsManager.recordAdStarted('rewarded', 'admob');
+    analyticsManager.recordAdCompleted('rewarded', 'admob', 'coins');
+
+    analyticsManager.recordAdStarted('rewarded', 'adsense');
+    analyticsManager.recordAdSkipped('rewarded');
+
+    analyticsManager.recordAdStarted('interstitial', 'admob');
+    analyticsManager.recordAdCompleted('interstitial', 'admob');
+
+    const monData = analyticsManager.getMonetizationData();
+    assert(monData.rewardedAdsStarted === 2, 'Tracked 2 rewarded ads started');
+    assert(monData.rewardedAdsCompleted === 1, 'Tracked 1 rewarded ad completed');
+    assert(monData.rewardedAdsSkipped === 1, 'Tracked 1 rewarded ad skipped');
+    assert(monData.freeCoinsClaimed === 1, 'Tracked 1 free coins reward claimed');
+    assert(monData.interstitialsShown === 1, 'Tracked 1 interstitial ad shown');
+    assert(monData.admobEvents === 4, 'Tracked 4 native AdMob events (2 starts + 2 completions)');
+    assert(monData.adsenseEvents === 1, 'Tracked 1 AdSense event');
+
+    const summaryReport = analyticsManager.getSummaryReport();
+    assert(summaryReport.monetization.completionRate === '50%', 'Accurately computed 50% ad completion rate');
+    assert(summaryReport.monetization.rewardedAdsCompleted === 1, 'Summary report contains monetization telemetry');
   }
 
   // --------------------------------------------------------------------------

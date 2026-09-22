@@ -18,6 +18,17 @@ export interface PlayerData {
   analytics?: BetaAnalyticsData;
 }
 
+export interface MonetizationAnalyticsData {
+  rewardedAdsStarted: number;
+  rewardedAdsCompleted: number;
+  rewardedAdsSkipped: number;
+  interstitialsShown: number;
+  freeCoinsClaimed: number;
+  revivesUsed: number;
+  admobEvents: number;
+  adsenseEvents: number;
+}
+
 export interface BetaAnalyticsData {
   averageScore: number;
   gamesPlayed: number;
@@ -29,6 +40,7 @@ export interface BetaAnalyticsData {
   averageSessionLengthSeconds: number;
   lastSessionLengthSeconds: number;
   lastSessionTimestamp: number;
+  monetization?: MonetizationAnalyticsData;
 }
 
 export interface SaveMetadata {

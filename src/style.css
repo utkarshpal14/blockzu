@@ -84,7 +84,7 @@ canvas {
 .side-banner {
   width: 160px;
   height: 600px;
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(51, 65, 85, 0.85);
@@ -92,11 +92,13 @@ canvas {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 18px 12px;
+  justify-content: flex-start;
+  padding: 8px 0;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
   transition: transform 0.2s, border-color 0.2s;
 }
 
@@ -110,67 +112,24 @@ canvas {
   font-weight: 700;
   color: #64748B;
   letter-spacing: 1px;
+  padding-bottom: 6px;
 }
 
-.side-ad-inner {
+.ad-slot-wrapper {
+  width: 160px;
+  height: 600px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
-.side-ad-pill {
-  background: rgba(56, 189, 248, 0.15);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  color: #38BDF8;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
-}
-
-.side-ad-logo {
-  font-size: 18px;
-  font-weight: 800;
-  color: #FFFFFF;
-  letter-spacing: 1.5px;
-}
-
-.side-ad-tagline {
-  font-size: 11px;
-  font-weight: 500;
-  color: #94A3B8;
-  line-height: 1.4;
-}
-
-.side-ad-graphic {
-  display: grid;
-  grid-template-columns: repeat(2, 28px);
-  gap: 6px;
-  margin: 12px 0;
-}
-
-.ad-block {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.ad-block.b1 { background: #38BDF8; }
-.ad-block.b2 { background: #FACC15; }
-.ad-block.b3 { background: #A855F7; }
-.ad-block.b4 { background: #F43F5E; }
-
-.side-ad-cta {
-  background: #2563EB;
-  color: #FFFFFF;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 8px 14px;
+.ad-slot-wrapper ins.adsbygoogle {
+  display: inline-block !important;
+  width: 160px !important;
+  height: 600px !important;
   border-radius: 10px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
 /* ==========================================================================
