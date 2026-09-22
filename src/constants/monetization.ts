@@ -10,8 +10,8 @@
  */
 
 export const MONETIZATION_CONFIG = {
-  // Global testing flag (set to false for production launch)
-  isTesting: true,
+  // Global testing flag (set to false for real live production ads)
+  isTesting: false,
 
   // =========================================================================
   // 1. GOOGLE ADMOB (Android Native)
