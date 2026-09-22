@@ -9,34 +9,34 @@ export const GRID_SIZE = 8;
 export const TOTAL_CELLS = 64;
 export const TRAY_CAPACITY = 3;
 
-export const CANVAS_WIDTH = 450;
+export const CANVAS_WIDTH = 380;
 export const CANVAS_HEIGHT = 800;
 
-// Board Geometry (Refined compact dimensions with generous screen clearance)
-export const TILE_SIZE = 41;
-export const CELL_SIZE = 41;
-export const CELL_GAP = 4;
-export const CELL_RADIUS = 7;
+// Board Geometry (Universal mobile-fit dimensions with guaranteed zero-clipping)
+export const TILE_SIZE = 37;
+export const CELL_SIZE = 37;
+export const CELL_GAP = 3;
+export const CELL_RADIUS = 6;
 
-export const BOARD_CARD_WIDTH = 380;
-export const BOARD_CARD_HEIGHT = 380;
-export const BOARD_CARD_X = (CANVAS_WIDTH - BOARD_CARD_WIDTH) / 2; // 35
-export const BOARD_CARD_Y = 120;
+export const BOARD_CARD_WIDTH = 340;
+export const BOARD_CARD_HEIGHT = 340;
+export const BOARD_CARD_X = (CANVAS_WIDTH - BOARD_CARD_WIDTH) / 2; // 20
+export const BOARD_CARD_Y = 118;
 
 // Grid Start Coordinates (Inside Board Card)
-export const BOARD_GRID_START_X = BOARD_CARD_X + 12; // 47
-export const BOARD_GRID_START_Y = BOARD_CARD_Y + 12; // 132
+export const BOARD_GRID_START_X = BOARD_CARD_X + 11.5; // 31.5
+export const BOARD_GRID_START_Y = BOARD_CARD_Y + 11.5; // 129.5
 
 // Glassmorphic Tray Dock Layout & Scaling
-export const TRAY_DOCK_X = 35;
-export const TRAY_DOCK_Y = 520;
-export const TRAY_DOCK_WIDTH = 380;
-export const TRAY_DOCK_HEIGHT = 175;
-export const TRAY_DOCK_RADIUS = 22;
+export const TRAY_DOCK_X = 20;
+export const TRAY_DOCK_Y = 490;
+export const TRAY_DOCK_WIDTH = 340;
+export const TRAY_DOCK_HEIGHT = 160;
+export const TRAY_DOCK_RADIUS = 20;
 
-export const TRAY_Y = 608;
-export const TRAY_SLOT_X_OFFSETS = [98, 225, 352];
-export const TRAY_SCALE = 0.54;
+export const TRAY_Y = 570;
+export const TRAY_SLOT_X_OFFSETS = [76, 190, 304];
+export const TRAY_SCALE = 0.46;
 export const DRAG_SCALE = 1.0;
 export const DRAG_OFFSET_Y = 55; // Configurable finger offset
 

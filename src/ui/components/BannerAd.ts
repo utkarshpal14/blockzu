@@ -7,7 +7,7 @@ import Phaser from 'phaser';
  * Pre-configured for Google AdSense / AdMob native banner binding.
  */
 export class BannerAd extends Phaser.GameObjects.Container {
-  constructor(scene: Phaser.Scene, x: number = 225, y: number = 20, width: number = 424, height: number = 32) {
+  constructor(scene: Phaser.Scene, x: number = 190, y: number = 24, width: number = 350, height: number = 30) {
     super(scene, x, y);
 
     this.createBanner(width, height);
@@ -46,7 +46,7 @@ export class BannerAd extends Phaser.GameObjects.Container {
     this.add(adLabel);
 
     // 5. Sponsored / Promotion Text
-    const promoText = this.scene.add.text(-width / 2 + 44, 0, '🎯 Blockzu: Play 100% Free • Relaxing 8×8 Puzzle', {
+    const promoText = this.scene.add.text(-width / 2 + 44, 0, '🎯 Blockzu: Play Free • 8×8 Puzzle', {
       fontFamily: 'Poppins, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',

@@ -67,11 +67,11 @@ export class MainMenuScene extends Phaser.Scene {
     this.createFloatingBackgroundGems(width, height);
 
     // 4. 3D Colorful Puffy Logo Container
-    const logoContainer = this.add.container(width / 2, 100);
+    const logoContainer = this.add.container(width / 2, 94);
 
     // Crown
-    const crown = this.add.text(0, -34, '👑', {
-      fontSize: '28px'
+    const crown = this.add.text(0, -32, '👑', {
+      fontSize: '26px'
     }).setOrigin(0.5);
     logoContainer.add(crown);
 
@@ -85,15 +85,15 @@ export class MainMenuScene extends Phaser.Scene {
       { char: 'U', color: '#F472B6' }  // Pink
     ];
 
-    const startX = -120;
-    const charSpacing = 40;
+    const startX = -105;
+    const charSpacing = 35;
 
     letters.forEach((item, idx) => {
       const charX = startX + idx * charSpacing;
       // Drop Shadow
-      const shadow = this.add.text(charX + 2, 4, item.char, {
+      const shadow = this.add.text(charX + 2, 3, item.char, {
         fontFamily: 'Poppins, sans-serif',
-        fontSize: '40px',
+        fontSize: '36px',
         fontStyle: 'bold',
         color: '#070A14'
       }).setOrigin(0.5);
@@ -102,19 +102,19 @@ export class MainMenuScene extends Phaser.Scene {
       // Main Letter with crisp white outline
       const letter = this.add.text(charX, 0, item.char, {
         fontFamily: 'Poppins, sans-serif',
-        fontSize: '40px',
+        fontSize: '36px',
         fontStyle: 'bold',
         color: item.color,
         stroke: '#FFFFFF',
-        strokeThickness: 3.5
+        strokeThickness: 3
       }).setOrigin(0.5);
       logoContainer.add(letter);
     });
 
     // Subtitle Badge
-    const subBadge = this.add.text(0, 34, '⚡ PUZZLE MASTER ⚡', {
+    const subBadge = this.add.text(0, 30, '⚡ PUZZLE MASTER ⚡', {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '10px',
+      fontSize: '9px',
       fontStyle: 'bold',
       color: '#93C5FD',
       letterSpacing: 2
@@ -132,48 +132,48 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // 5. Top Status Bar: Live Coins Pill (Left) & Rewarded Free Coins Ad Pill (Right)
-    const pillY = 176;
+    const pillY = 160;
 
     // A. Coins Pill (Left)
-    const coinContainer = this.add.container(width / 2 - 76, pillY);
+    const coinContainer = this.add.container(width / 2 - 68, pillY);
     const coinBg = this.add.graphics();
     coinBg.fillStyle(0x000000, 0.35);
-    coinBg.fillRoundedRect(-62, -14, 124, 28, 14);
+    coinBg.fillRoundedRect(-58, -13, 116, 26, 13);
     coinBg.fillStyle(0x172554, 0.95);
     coinBg.lineStyle(1.5, 0xF59E0B, 0.85); // Gold outline
-    coinBg.fillRoundedRect(-62, -16, 124, 28, 14);
-    coinBg.strokeRoundedRect(-62, -16, 124, 28, 14);
+    coinBg.fillRoundedRect(-58, -15, 116, 26, 13);
+    coinBg.strokeRoundedRect(-58, -15, 116, 26, 13);
     coinContainer.add(coinBg);
 
     this.coinText = this.add.text(0, -2, `🪙 ${saveManager.getCoins().toLocaleString()}`, {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '13px',
+      fontSize: '12px',
       fontStyle: 'bold',
       color: '#FDE047'
     }).setOrigin(0.5);
     coinContainer.add(this.coinText);
 
     // B. Free Coins Video Ad Pill (Right)
-    const adContainer = this.add.container(width / 2 + 76, pillY);
+    const adContainer = this.add.container(width / 2 + 68, pillY);
     const adBg = this.add.graphics();
     adBg.fillStyle(0x000000, 0.35);
-    adBg.fillRoundedRect(-62, -14, 124, 28, 14);
+    adBg.fillRoundedRect(-58, -13, 116, 26, 13);
     adBg.fillStyle(0x172554, 0.95);
     adBg.lineStyle(1.5, 0x38BDF8, 0.85); // Cyan outline
-    adBg.fillRoundedRect(-62, -16, 124, 28, 14);
-    adBg.strokeRoundedRect(-62, -16, 124, 28, 14);
+    adBg.fillRoundedRect(-58, -15, 116, 26, 13);
+    adBg.strokeRoundedRect(-58, -15, 116, 26, 13);
     adContainer.add(adBg);
 
     const remainingAds = adManager.getRemainingRewardedCoinsAds();
     this.adBtnText = this.add.text(0, -2, `🎬 +50 🪙 (${remainingAds}/5)`, {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '11px',
+      fontSize: '10px',
       fontStyle: 'bold',
       color: remainingAds > 0 ? '#38BDF8' : '#64748B'
     }).setOrigin(0.5);
     adContainer.add(this.adBtnText);
 
-    adContainer.setSize(124, 28);
+    adContainer.setSize(116, 26);
     adContainer.setInteractive({ useHandCursor: true });
     adContainer.on('pointerdown', () => {
       audioManager.playButtonClick();
@@ -190,37 +190,37 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // 6. Best Score Hero Card (Elevated Glassmorphism with Glowing Gold Accents)
-    const cardY = 270;
-    const cardWidth = 316;
-    const cardHeight = 96;
+    const cardY = 250;
+    const cardWidth = 296;
+    const cardHeight = 90;
 
     const bestCard = this.add.graphics();
     // Drop Shadow
     bestCard.fillStyle(0x000000, 0.45);
-    bestCard.fillRoundedRect(width / 2 - cardWidth / 2, cardY - cardHeight / 2 + 5, cardWidth, cardHeight, 20);
+    bestCard.fillRoundedRect(width / 2 - cardWidth / 2, cardY - cardHeight / 2 + 5, cardWidth, cardHeight, 18);
 
     // Glass Body (Deep Royal Navy)
     bestCard.fillStyle(0x172554, 0.95);
-    bestCard.fillRoundedRect(width / 2 - cardWidth / 2, cardY - cardHeight / 2, cardWidth, cardHeight, 20);
+    bestCard.fillRoundedRect(width / 2 - cardWidth / 2, cardY - cardHeight / 2, cardWidth, cardHeight, 18);
 
     // Gold Bezel Border
     bestCard.lineStyle(2, 0xF59E0B, 0.85);
-    bestCard.strokeRoundedRect(width / 2 - cardWidth / 2, cardY - cardHeight / 2, cardWidth, cardHeight, 20);
+    bestCard.strokeRoundedRect(width / 2 - cardWidth / 2, cardY - cardHeight / 2, cardWidth, cardHeight, 18);
 
     // Top Gloss
     bestCard.fillStyle(0xffffff, 0.12);
-    bestCard.fillRoundedRect(width / 2 - cardWidth / 2 + 2, cardY - cardHeight / 2 + 2, cardWidth - 4, 30, 18);
+    bestCard.fillRoundedRect(width / 2 - cardWidth / 2 + 2, cardY - cardHeight / 2 + 2, cardWidth - 4, 28, 16);
 
-    this.add.text(width / 2, cardY - 22, '👑 BEST SCORE', {
+    this.add.text(width / 2, cardY - 20, '👑 BEST SCORE', {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '13px',
+      fontSize: '12px',
       fontStyle: 'bold',
       color: '#F59E0B'
     }).setOrigin(0.5);
 
-    const scoreNum = this.add.text(width / 2, cardY + 14, `${saveManager.getBestScore().toLocaleString()}`, {
+    const scoreNum = this.add.text(width / 2, cardY + 12, `${saveManager.getBestScore().toLocaleString()}`, {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '36px',
+      fontSize: '34px',
       fontStyle: 'bold',
       color: '#FFFFFF'
     }).setOrigin(0.5);
@@ -236,13 +236,13 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // 7. Progression Retention Action Row: [ 🎁 Daily | 🎯 Missions | 🏆 Badges ]
-    const progY = 372;
-    const progBtnWidth = 98;
-    const progBtnHeight = 50;
+    const progY = 345;
+    const progBtnWidth = 88;
+    const progBtnHeight = 48;
 
     // Daily Reward Button (Emerald Green #059669 / #10B981)
     const dailyBtn = this.createColorfulButton(
-      width / 2 - 108,
+      width / 2 - 96,
       progY,
       progBtnWidth,
       progBtnHeight,
@@ -288,7 +288,7 @@ export class MainMenuScene extends Phaser.Scene {
 
     // Badges / Achievements Button (Deep Violet #7C3AED / #A78BFA)
     const achBtn = this.createColorfulButton(
-      width / 2 + 108,
+      width / 2 + 96,
       progY,
       progBtnWidth,
       progBtnHeight,
@@ -313,29 +313,29 @@ export class MainMenuScene extends Phaser.Scene {
     this.updateBadges();
 
     // 8. PLAY NOW Button (Primary CTA with glossy sheen, pulsing scale, & traveling light glint)
-    const playBtn = this.add.container(width / 2, 478);
+    const playBtn = this.add.container(width / 2, 440);
     const playBg = this.add.graphics();
 
     // Shadow
     playBg.fillStyle(0x000000, 0.5);
-    playBg.fillRoundedRect(-144, -30, 288, 64, 22);
+    playBg.fillRoundedRect(-132, -28, 264, 58, 20);
 
     // Outer Glow Ring
     playBg.lineStyle(3, 0x38BDF8, 0.75);
-    playBg.strokeRoundedRect(-144, -32, 288, 64, 22);
+    playBg.strokeRoundedRect(-132, -30, 264, 58, 20);
 
     // Button body (Vibrant Royal Blue Gradient)
     playBg.fillStyle(0x2563EB, 1);
-    playBg.fillRoundedRect(-144, -32, 288, 64, 22);
+    playBg.fillRoundedRect(-132, -30, 264, 58, 20);
 
     // Gloss top shine
     playBg.fillStyle(0xffffff, 0.32);
-    playBg.fillRoundedRect(-140, -30, 280, 26, 18);
+    playBg.fillRoundedRect(-128, -28, 256, 24, 16);
     playBtn.add(playBg);
 
     const playText = this.add.text(0, 0, '▶  PLAY NOW', {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '22px',
+      fontSize: '20px',
       fontStyle: 'bold',
       color: '#FFFFFF'
     }).setOrigin(0.5);
@@ -344,7 +344,7 @@ export class MainMenuScene extends Phaser.Scene {
     // Glint Light Sweep across Play Button
     const glint = this.add.graphics();
     glint.fillStyle(0xffffff, 0.45);
-    glint.fillRoundedRect(-15, -32, 30, 64, 8);
+    glint.fillRoundedRect(-15, -30, 30, 58, 8);
     glint.setAlpha(0);
     playBtn.add(glint);
 
@@ -352,11 +352,11 @@ export class MainMenuScene extends Phaser.Scene {
       delay: 3200,
       loop: true,
       callback: () => {
-        glint.x = -160;
+        glint.x = -140;
         glint.setAlpha(0.6);
         this.tweens.add({
           targets: glint,
-          x: 160,
+          x: 140,
           alpha: 0,
           duration: 650,
           ease: 'Quad.easeOut'
@@ -364,7 +364,7 @@ export class MainMenuScene extends Phaser.Scene {
       }
     });
 
-    playBtn.setSize(288, 64);
+    playBtn.setSize(264, 58);
     playBtn.setInteractive({ useHandCursor: true });
 
     this.tweens.add({
@@ -393,12 +393,12 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // 9. Utility Action Row: [ 🎨 Themes | 📊 Stats | ⚙️ Settings ]
-    const btnY = 585;
-    const btnWidth = 98;
-    const btnHeight = 46;
+    const btnY = 535;
+    const btnWidth = 88;
+    const btnHeight = 44;
 
     // Themes (Vibrant Indigo #6366F1)
-    this.createColorfulButton(width / 2 - 108, btnY, btnWidth, btnHeight, '🎨 Themes', 0x6366F1, 0x818CF8, '#FFFFFF', () => {
+    this.createColorfulButton(width / 2 - 96, btnY, btnWidth, btnHeight, '🎨 Themes', 0x6366F1, 0x818CF8, '#FFFFFF', () => {
       audioManager.playButtonClick();
       new ThemesModal(this, () => {
         this.refreshCoins();
@@ -415,7 +415,7 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // Settings (Slate / Neutral #475569)
-    this.createColorfulButton(width / 2 + 108, btnY, btnWidth, btnHeight, '⚙️ Settings', 0x475569, 0x94A3B8, '#FFFFFF', () => {
+    this.createColorfulButton(width / 2 + 96, btnY, btnWidth, btnHeight, '⚙️ Settings', 0x475569, 0x94A3B8, '#FFFFFF', () => {
       audioManager.playButtonClick();
       new SettingsModal(this, () => {
         this.refreshCoins();

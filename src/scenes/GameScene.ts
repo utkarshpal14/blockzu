@@ -474,47 +474,47 @@ export class GameScene extends Phaser.Scene {
     const audioManager = AudioManager.getInstance();
 
     // 0. In-Game Top Sponsored Banner Bar (Inside game canvas, above score & buttons)
-    new BannerAd(this, width / 2, 22);
+    new BannerAd(this, width / 2, 24);
 
-    const topBarY = 70;
+    const topBarY = 68;
 
     // 1. Crown Best Score Pill (Top-Left)
-    const crownContainer = this.add.container(68, topBarY);
+    const crownContainer = this.add.container(60, topBarY);
     const crownBg = this.add.graphics();
     crownBg.fillStyle(0x0F172A, 0.85);
     crownBg.lineStyle(1.5, 0xF59E0B, 0.85);
-    crownBg.fillRoundedRect(-52, -15, 104, 30, 15);
-    crownBg.strokeRoundedRect(-52, -15, 104, 30, 15);
+    crownBg.fillRoundedRect(-48, -14, 96, 28, 14);
+    crownBg.strokeRoundedRect(-48, -14, 96, 28, 14);
     crownContainer.add(crownBg);
 
-    const crownIcon = this.add.text(-38, 0, '👑', {
-      fontSize: '15px'
+    const crownIcon = this.add.text(-34, 0, '👑', {
+      fontSize: '14px'
     }).setOrigin(0, 0.5);
     crownContainer.add(crownIcon);
 
-    this.bestScoreText = this.add.text(-16, 0, `${saveManager.getBestScore().toLocaleString()}`, {
+    this.bestScoreText = this.add.text(-12, 0, `${saveManager.getBestScore().toLocaleString()}`, {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '14px',
+      fontSize: '13px',
       fontStyle: 'bold',
       color: '#FDE047'
     }).setOrigin(0, 0.5);
     crownContainer.add(this.bestScoreText);
 
     // 2. Settings Gear Pill (Top-Right)
-    const settingsBtn = this.add.container(width - 38, topBarY);
+    const settingsBtn = this.add.container(width - 30, topBarY);
     const gearBg = this.add.graphics();
     gearBg.fillStyle(0x0F172A, 0.85);
     gearBg.lineStyle(1.5, 0x38BDF8, 0.85);
-    gearBg.fillCircle(0, 0, 17);
-    gearBg.strokeCircle(0, 0, 17);
+    gearBg.fillCircle(0, 0, 16);
+    gearBg.strokeCircle(0, 0, 16);
     settingsBtn.add(gearBg);
 
     const gearText = this.add.text(0, 0, '⚙️', {
-      fontSize: '18px'
+      fontSize: '16px'
     }).setOrigin(0.5);
     settingsBtn.add(gearText);
 
-    settingsBtn.setSize(36, 36);
+    settingsBtn.setSize(32, 32);
     settingsBtn.setInteractive({ useHandCursor: true });
 
     settingsBtn.on('pointerdown', () => {
@@ -530,7 +530,7 @@ export class GameScene extends Phaser.Scene {
     // 3. Huge Bold Clean Score Number (Center Top right between Best and Settings)
     this.scoreText = this.add.text(width / 2, topBarY, `${scoreManager.getCurrentScore()}`, {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '42px',
+      fontSize: '38px',
       fontStyle: 'bold',
       color: '#FFFFFF'
     }).setOrigin(0.5);
