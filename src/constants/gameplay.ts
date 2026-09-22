@@ -21,7 +21,7 @@ export const CELL_RADIUS = 8;
 export const BOARD_CARD_WIDTH = 426;
 export const BOARD_CARD_HEIGHT = 426;
 export const BOARD_CARD_X = (CANVAS_WIDTH - BOARD_CARD_WIDTH) / 2; // 12
-export const BOARD_CARD_Y = 98;
+export const BOARD_CARD_Y = 110;
 
 // Grid Start Coordinates (Inside Board Card)
 export const BOARD_GRID_START_X = BOARD_CARD_X + 11;

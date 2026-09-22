@@ -10,6 +10,7 @@ import { PieceManager } from '../managers/PieceManager';
 import { BoardView } from '../ui/components/BoardView';
 import { TrayView } from '../ui/components/TrayView';
 import { AmbientParticles } from '../ui/components/AmbientParticles';
+import { BannerAd } from '../ui/components/BannerAd';
 import { ClearSystem } from '../systems/ClearSystem';
 import { GameFlowSystem, SessionStats } from '../systems/GameFlowSystem';
 import { FloatingText } from '../ui/components/FloatingText';
@@ -472,7 +473,10 @@ export class GameScene extends Phaser.Scene {
     const saveManager = SaveManager.getInstance();
     const audioManager = AudioManager.getInstance();
 
-    const topBarY = 32;
+    // 0. In-Game Top Sponsored Banner Bar (Inside game canvas, above score & buttons)
+    new BannerAd(this, width / 2, 22);
+
+    const topBarY = 64;
 
     // 1. Crown Best Score Pill (Top-Left)
     const crownContainer = this.add.container(65, topBarY);
@@ -523,8 +527,8 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    // 3. Huge Bold Clean Score Number (Center Top right above the board)
-    this.scoreText = this.add.text(width / 2, 60, `${scoreManager.getCurrentScore()}`, {
+    // 3. Huge Bold Clean Score Number (Center Top right between Best and Settings)
+    this.scoreText = this.add.text(width / 2, 64, `${scoreManager.getCurrentScore()}`, {
       fontFamily: 'Poppins, sans-serif',
       fontSize: '44px',
       fontStyle: 'bold',

@@ -23,57 +23,7 @@ body {
 }
 
 /* ==========================================================================
-   1. TOP RESPONSIVE AD BANNER
-   ========================================================================== */
-#top-ad-banner {
-  width: 100%;
-  max-width: 860px;
-  height: 42px;
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(51, 65, 85, 0.8);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 14px;
-  color: #E2E8F0;
-  font-size: 12px;
-  margin-bottom: 6px;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.ad-pill {
-  background: #2563EB;
-  color: #FFFFFF;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 6px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.ad-text {
-  color: #F8FAFC;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ad-text strong {
-  color: #38BDF8;
-}
-
-.ad-subtext {
-  color: #94A3B8;
-  font-size: 11px;
-}
-
-/* ==========================================================================
-   2. MAIN GAME WRAPPER & DESKTOP FLANKING ADS
+   1. MAIN GAME WRAPPER & DESKTOP FLANKING ADS
    ========================================================================== */
 #game-wrapper {
   display: flex;
@@ -81,8 +31,8 @@ body {
   align-items: center;
   gap: 20px;
   width: 100%;
-  height: calc(100% - 54px);
-  max-height: 840px;
+  height: 100%;
+  max-height: 800px;
   padding: 0 12px;
 }
 
@@ -105,7 +55,7 @@ canvas {
 }
 
 /* ==========================================================================
-   3. DESKTOP SKYSCRAPER SIDE BANNERS (160×600)
+   2. DESKTOP SKYSCRAPER SIDE BANNERS (160×600)
    ========================================================================== */
 .side-banner {
   width: 160px;
@@ -200,21 +150,10 @@ canvas {
 }
 
 /* ==========================================================================
-   4. RESPONSIVE MEDIA QUERIES
+   3. RESPONSIVE MEDIA QUERIES
    ========================================================================== */
 @media (max-width: 880px) {
   .side-banner {
     display: none !important;
-  }
-  #top-ad-banner {
-    max-width: 450px;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    margin-bottom: 2px;
-  }
-  .ad-subtext {
-    display: none;
   }
 }

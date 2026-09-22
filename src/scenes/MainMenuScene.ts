@@ -14,6 +14,7 @@ import { DailyRewardModal } from '../ui/modals/DailyRewardModal';
 import { MissionsModal } from '../ui/modals/MissionsModal';
 import { AchievementsModal } from '../ui/modals/AchievementsModal';
 import { AdManager } from '../managers/AdManager';
+import { BannerAd } from '../ui/components/BannerAd';
 
 /**
  * MAIN MENU SCENE
@@ -24,12 +25,11 @@ import { AdManager } from '../managers/AdManager';
  */
 export class MainMenuScene extends Phaser.Scene {
   private static hasPromptedDailySession: boolean = false;
-
   private coinText!: Phaser.GameObjects.Text;
-  private adBtnText!: Phaser.GameObjects.Text;
-  private dailyBadge?: Phaser.GameObjects.Container;
+  private adBtnText?: Phaser.GameObjects.Text;
   private missionBadge?: Phaser.GameObjects.Container;
-  private badgeAchievementBadge?: Phaser.GameObjects.Container;
+  private achievementBadge?: Phaser.GameObjects.Container;
+  private dailyBadge?: Phaser.GameObjects.Container;
 
   constructor() {
     super('MainMenuScene');
@@ -38,18 +38,20 @@ export class MainMenuScene extends Phaser.Scene {
   create() {
     const width = this.scale.width || CANVAS_WIDTH;
     const height = this.scale.height || CANVAS_HEIGHT;
-    const themeManager = ThemeManager.getInstance();
+    const theme = ThemeManager.getInstance().getActiveColors();
     const saveManager = SaveManager.getInstance();
     const audioManager = AudioManager.getInstance();
     const dailyRewardManager = DailyRewardManager.getInstance();
     const adManager = AdManager.getInstance();
-    const theme = themeManager.getActiveColors();
 
     // Camera transition: Fast 200ms Fade-In
     this.cameras.main.fadeIn(200, 0, 0, 0);
 
     // Set Menu Ambient Atmosphere (Warm bass pad + soft arcade synth + light sparkle bells)
     audioManager.setAudioState('menu');
+
+    // 0. Top In-Game Sponsored Banner Bar
+    new BannerAd(this, width / 2, 22);
 
     // 1. Dynamic Vibrant Background with Top/Bottom Gradient Depth (Cohesive Royal Sapphire to Deep Navy)
     const bgGraphics = this.add.graphics();
@@ -65,11 +67,11 @@ export class MainMenuScene extends Phaser.Scene {
     this.createFloatingBackgroundGems(width, height);
 
     // 4. 3D Colorful Puffy Logo Container
-    const logoContainer = this.add.container(width / 2, 95);
+    const logoContainer = this.add.container(width / 2, 100);
 
     // Crown
-    const crown = this.add.text(0, -42, '👑', {
-      fontSize: '34px'
+    const crown = this.add.text(0, -34, '👑', {
+      fontSize: '28px'
     }).setOrigin(0.5);
     logoContainer.add(crown);
 
@@ -83,15 +85,15 @@ export class MainMenuScene extends Phaser.Scene {
       { char: 'U', color: '#F472B6' }  // Pink
     ];
 
-    const startX = -135;
-    const charSpacing = 45;
+    const startX = -120;
+    const charSpacing = 40;
 
     letters.forEach((item, idx) => {
       const charX = startX + idx * charSpacing;
       // Drop Shadow
-      const shadow = this.add.text(charX + 3, 5, item.char, {
+      const shadow = this.add.text(charX + 2, 4, item.char, {
         fontFamily: 'Poppins, sans-serif',
-        fontSize: '44px',
+        fontSize: '40px',
         fontStyle: 'bold',
         color: '#070A14'
       }).setOrigin(0.5);
@@ -100,7 +102,7 @@ export class MainMenuScene extends Phaser.Scene {
       // Main Letter with crisp white outline
       const letter = this.add.text(charX, 0, item.char, {
         fontFamily: 'Poppins, sans-serif',
-        fontSize: '44px',
+        fontSize: '40px',
         fontStyle: 'bold',
         color: item.color,
         stroke: '#FFFFFF',
@@ -110,7 +112,7 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // Subtitle Badge
-    const subBadge = this.add.text(0, 44, '⚡ PUZZLE MASTER ⚡', {
+    const subBadge = this.add.text(0, 34, '⚡ PUZZLE MASTER ⚡', {
       fontFamily: 'Poppins, sans-serif',
       fontSize: '10px',
       fontStyle: 'bold',
@@ -130,7 +132,7 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // 5. Top Status Bar: Live Coins Pill (Left) & Rewarded Free Coins Ad Pill (Right)
-    const pillY = 160;
+    const pillY = 176;
 
     // A. Coins Pill (Left)
     const coinContainer = this.add.container(width / 2 - 76, pillY);
@@ -181,16 +183,16 @@ export class MainMenuScene extends Phaser.Scene {
             this.refreshCoins();
             this.updateBadges();
             const left = adManager.getRemainingRewardedCoinsAds();
-            this.adBtnText.setText(`🎬 +50 🪙 (${left}/5)`);
+            this.adBtnText?.setText(`🎬 +50 🪙 (${left}/5)`);
           }
         });
       }
     });
 
     // 6. Best Score Hero Card (Elevated Glassmorphism with Glowing Gold Accents)
-    const cardY = 240;
+    const cardY = 270;
     const cardWidth = 316;
-    const cardHeight = 100;
+    const cardHeight = 96;
 
     const bestCard = this.add.graphics();
     // Drop Shadow
@@ -207,9 +209,9 @@ export class MainMenuScene extends Phaser.Scene {
 
     // Top Gloss
     bestCard.fillStyle(0xffffff, 0.12);
-    bestCard.fillRoundedRect(width / 2 - cardWidth / 2 + 2, cardY - cardHeight / 2 + 2, cardWidth - 4, 32, 18);
+    bestCard.fillRoundedRect(width / 2 - cardWidth / 2 + 2, cardY - cardHeight / 2 + 2, cardWidth - 4, 30, 18);
 
-    this.add.text(width / 2, cardY - 24, '👑 BEST SCORE', {
+    this.add.text(width / 2, cardY - 22, '👑 BEST SCORE', {
       fontFamily: 'Poppins, sans-serif',
       fontSize: '13px',
       fontStyle: 'bold',
@@ -218,7 +220,7 @@ export class MainMenuScene extends Phaser.Scene {
 
     const scoreNum = this.add.text(width / 2, cardY + 14, `${saveManager.getBestScore().toLocaleString()}`, {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '38px',
+      fontSize: '36px',
       fontStyle: 'bold',
       color: '#FFFFFF'
     }).setOrigin(0.5);
@@ -234,9 +236,9 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // 7. Progression Retention Action Row: [ 🎁 Daily | 🎯 Missions | 🏆 Badges ]
-    const progY = 340;
+    const progY = 372;
     const progBtnWidth = 98;
-    const progBtnHeight = 52;
+    const progBtnHeight = 50;
 
     // Daily Reward Button (Emerald Green #059669 / #10B981)
     const dailyBtn = this.createColorfulButton(
@@ -305,13 +307,13 @@ export class MainMenuScene extends Phaser.Scene {
         });
       }
     );
-    this.badgeAchievementBadge = this.createNotificationBadge(achBtn, progBtnWidth / 2 - 4, -progBtnHeight / 2 + 4);
+    this.achievementBadge = this.createNotificationBadge(achBtn, progBtnWidth / 2 - 4, -progBtnHeight / 2 + 4);
 
     // Update badges visibility
     this.updateBadges();
 
     // 8. PLAY NOW Button (Primary CTA with glossy sheen, pulsing scale, & traveling light glint)
-    const playBtn = this.add.container(width / 2, 438);
+    const playBtn = this.add.container(width / 2, 478);
     const playBg = this.add.graphics();
 
     // Shadow
@@ -391,7 +393,7 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     // 9. Utility Action Row: [ 🎨 Themes | 📊 Stats | ⚙️ Settings ]
-    const btnY = 538;
+    const btnY = 585;
     const btnWidth = 98;
     const btnHeight = 46;
 
@@ -452,8 +454,8 @@ export class MainMenuScene extends Phaser.Scene {
     if (this.missionBadge) {
       this.missionBadge.setVisible(missionAvailable);
     }
-    if (this.badgeAchievementBadge) {
-      this.badgeAchievementBadge.setVisible(achAvailable);
+    if (this.achievementBadge) {
+      this.achievementBadge.setVisible(achAvailable);
     }
   }
 
