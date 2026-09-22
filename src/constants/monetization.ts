@@ -33,7 +33,7 @@ export const MONETIZATION_CONFIG = {
   // =========================================================================
   adsense: {
     // Publisher ID (Google AdSense Account)
-    publisherId: 'ca-pub-29105730988630764',
+    publisherId: 'ca-pub-2910573088630764',
     
     // H5 Game Ads AdSense channel / slot
     h5Channel: 'blockzu_web_game',
