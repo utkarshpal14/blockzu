@@ -17,16 +17,82 @@ body {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   touch-action: none;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
-#app {
+/* ==========================================================================
+   1. TOP RESPONSIVE AD BANNER
+   ========================================================================== */
+#top-ad-banner {
   width: 100%;
-  height: 100%;
+  max-width: 860px;
+  height: 42px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 14px;
+  color: #E2E8F0;
+  font-size: 12px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.ad-pill {
+  background: #2563EB;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ad-text {
+  color: #F8FAFC;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ad-text strong {
+  color: #38BDF8;
+}
+
+.ad-subtext {
+  color: #94A3B8;
+  font-size: 11px;
+}
+
+/* ==========================================================================
+   2. MAIN GAME WRAPPER & DESKTOP FLANKING ADS
+   ========================================================================== */
+#game-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 20px;
+  width: 100%;
+  height: calc(100% - 54px);
+  max-height: 840px;
+  padding: 0 12px;
+}
+
+#app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  max-width: 450px;
+  flex-shrink: 0;
 }
 
 canvas {
@@ -34,5 +100,121 @@ canvas {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border-radius: 18px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* ==========================================================================
+   3. DESKTOP SKYSCRAPER SIDE BANNERS (160×600)
+   ========================================================================== */
+.side-banner {
+  width: 160px;
+  height: 600px;
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.85);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 12px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.side-banner:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.ad-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 1px;
+}
+
+.side-ad-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.side-ad-pill {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38BDF8;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.side-ad-logo {
+  font-size: 18px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: 1.5px;
+}
+
+.side-ad-tagline {
+  font-size: 11px;
+  font-weight: 500;
+  color: #94A3B8;
+  line-height: 1.4;
+}
+
+.side-ad-graphic {
+  display: grid;
+  grid-template-columns: repeat(2, 28px);
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.ad-block {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ad-block.b1 { background: #38BDF8; }
+.ad-block.b2 { background: #FACC15; }
+.ad-block.b3 { background: #A855F7; }
+.ad-block.b4 { background: #F43F5E; }
+
+.side-ad-cta {
+  background: #2563EB;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+/* ==========================================================================
+   4. RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
+@media (max-width: 880px) {
+  .side-banner {
+    display: none !important;
+  }
+  #top-ad-banner {
+    max-width: 450px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    margin-bottom: 2px;
+  }
+  .ad-subtext {
+    display: none;
+  }
 }
