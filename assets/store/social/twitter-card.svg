@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="ogBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A"/>
+      <stop offset="50%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="brandGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#EAB308"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#ogBg)"/>
+  
+  <circle cx="950" cy="315" r="240" fill="#3B82F6" fill-opacity="0.12"/>
+  
+  <!-- Main Title -->
+  <text x="100" y="240" font-family="'Poppins', sans-serif" font-weight="900" font-size="88px" fill="#FFFFFF" letter-spacing="4">BLOCKZU</text>
+  <text x="102" y="310" font-family="'Poppins', sans-serif" font-weight="700" font-size="34px" fill="url(#brandGold)">Casual 8×8 Block Puzzle Game</text>
+  <text x="102" y="370" font-family="'Poppins', sans-serif" font-weight="500" font-size="24px" fill="#CBD5E1">Play Free Online • No Wifi Needed • Unlock Beautiful Themes</text>
+  
+  <rect x="102" y="430" width="220" height="54" rx="27" fill="#2563EB"/>
+  <text x="212" y="465" font-family="'Poppins', sans-serif" font-weight="700" font-size="20px" fill="#FFFFFF" text-anchor="middle">PLAY INSTANTLY</text>
+
+  <!-- Decorative Polyomino Cluster -->
+  <g transform="translate(800, 190)">
+    <rect x="0" y="0" width="70" height="70" rx="12" fill="#38BDF8"/>
+    <rect x="76" y="0" width="70" height="70" rx="12" fill="#38BDF8"/>
+    <rect x="152" y="0" width="70" height="70" rx="12" fill="#38BDF8"/>
+    <rect x="76" y="76" width="70" height="70" rx="12" fill="#FACC15"/>
+    <rect x="152" y="76" width="70" height="70" rx="12" fill="#A855F7"/>
+    <rect x="152" y="152" width="70" height="70" rx="12" fill="#F43F5E"/>
+  </g>
+</svg>

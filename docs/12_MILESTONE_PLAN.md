@@ -682,7 +682,7 @@ PWA Installable
 ### Status
 
 ```text
-⬜ Not Started
+✅ Completed
 ```
 
 ---
@@ -772,7 +772,7 @@ M9 Monetization            ✅
 M10 Polish                 ✅
 M11 QA & Testing           ✅
 M11.5 Beta Analytics       ✅
-M12 Release                ⬜
+M12 Release                ✅
 ```
 
 ---

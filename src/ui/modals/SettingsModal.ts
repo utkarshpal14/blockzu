@@ -49,7 +49,7 @@ export class SettingsModal extends Phaser.GameObjects.Container {
     this.add(this.panel);
 
     const panelWidth = 380;
-    const panelHeight = 490;
+    const panelHeight = 520;
 
     const bg = this.scene.add.graphics();
     // Drop shadow
@@ -143,11 +143,35 @@ export class SettingsModal extends Phaser.GameObjects.Container {
     );
 
     // Advanced Section Container
-    const advY = startY + (rowHeight + 12) * 3 + 18;
+    const advY = startY + (rowHeight + 12) * 3 + 14;
     this.advancedContainer = this.scene.add.container(0, advY);
     this.panel.add(this.advancedContainer);
 
     this.renderAdvancedButton(rowWidth);
+
+    // 4. Branding & Privacy Policy Footer
+    const footerY = panelHeight / 2 - 28;
+    const versionText = this.scene.add.text(0, footerY - 14, 'Blockzu v1.0.0 • Developed by PriorApp Games', {
+      fontFamily: 'Poppins, sans-serif',
+      fontSize: '11px',
+      color: '#64748B'
+    }).setOrigin(0.5);
+    this.panel.add(versionText);
+
+    const privacyLink = this.scene.add.text(0, footerY + 4, '🔒  Privacy Policy & Terms', {
+      fontFamily: 'Poppins, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#38BDF8'
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    privacyLink.on('pointerdown', () => {
+      audioManager.playButtonClick();
+      if (typeof window !== 'undefined') {
+        window.open('/privacy.html', '_blank');
+      }
+    });
+    this.panel.add(privacyLink);
   }
 
   private createToggleRow(

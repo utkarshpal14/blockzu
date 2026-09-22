@@ -1,13 +1,14 @@
 {
   "name": "blockzu",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "npx tsx tests/qa_suite.ts"
+    "test": "npx tsx tests/qa_suite.ts",
+    "generate:assets": "npx tsx scripts/generate_store_assets.ts"
   },
   "devDependencies": {
     "typescript": "~6.0.2",

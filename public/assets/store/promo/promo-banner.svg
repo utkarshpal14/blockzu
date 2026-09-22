@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500" width="1024" height="500">
+  <defs>
+    <linearGradient id="featBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1B4B"/>
+      <stop offset="40%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="textGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="cyanPill" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="500" fill="url(#featBg)"/>
+  
+  <!-- Grid Accent Background Lines -->
+  <g opacity="0.12" stroke="#38BDF8" stroke-width="1.5">
+    <line x1="600" y1="50" x2="950" y2="50"/>
+    <line x1="600" y1="110" x2="950" y2="110"/>
+    <line x1="600" y1="170" x2="950" y2="170"/>
+    <line x1="600" y1="230" x2="950" y2="230"/>
+    <line x1="600" y1="290" x2="950" y2="290"/>
+    <line x1="600" y1="350" x2="950" y2="350"/>
+    <line x1="600" y1="410" x2="950" y2="410"/>
+    <line x1="600" y1="50" x2="600" y2="410"/>
+    <line x1="670" y1="50" x2="670" y2="410"/>
+    <line x1="740" y1="50" x2="740" y2="410"/>
+    <line x1="810" y1="50" x2="810" y2="410"/>
+    <line x1="880" y1="50" x2="880" y2="410"/>
+    <line x1="950" y1="50" x2="950" y2="410"/>
+  </g>
+
+  <!-- Visual 3D Blocks in Grid -->
+  <rect x="672" y="112" width="66" height="66" rx="10" fill="#38BDF8"/>
+  <rect x="742" y="112" width="66" height="66" rx="10" fill="#38BDF8"/>
+  <rect x="742" y="172" width="66" height="66" rx="10" fill="#EAB308"/>
+  <rect x="812" y="172" width="66" height="66" rx="10" fill="#EAB308"/>
+  <rect x="812" y="232" width="66" height="66" rx="10" fill="#A855F7"/>
+  <rect x="672" y="292" width="66" height="66" rx="10" fill="#F43F5E"/>
+  <rect x="742" y="292" width="66" height="66" rx="10" fill="#F43F5E"/>
+  <rect x="812" y="292" width="66" height="66" rx="10" fill="#F43F5E"/>
+
+  <!-- Left Text & Branding -->
+  <text x="90" y="190" font-family="'Poppins', sans-serif" font-weight="900" font-size="76px" fill="#FFFFFF" letter-spacing="3">BLOCKZU</text>
+  <text x="92" y="248" font-family="'Poppins', sans-serif" font-weight="700" font-size="28px" fill="url(#textGold)">Relaxing 8×8 Block Puzzle</text>
+  <text x="92" y="296" font-family="'Poppins', sans-serif" font-weight="500" font-size="20px" fill="#94A3B8">Place Shapes • Clear Lines • Trigger Combos</text>
+
+  <!-- Feature Pills -->
+  <rect x="92" y="340" width="160" height="42" rx="21" fill="url(#cyanPill)"/>
+  <text x="172" y="367" font-family="'Poppins', sans-serif" font-weight="700" font-size="15px" fill="#FFFFFF" text-anchor="middle">⚡ 100% OFFLINE</text>
+
+  <rect x="268" y="340" width="160" height="42" rx="21" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+  <text x="348" y="367" font-family="'Poppins', sans-serif" font-weight="700" font-size="15px" fill="#E2E8F0" text-anchor="middle">🎨 6+ THEMES</text>
+
+  <rect x="444" y="340" width="170" height="42" rx="21" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+  <text x="529" y="367" font-family="'Poppins', sans-serif" font-weight="700" font-size="15px" fill="#E2E8F0" text-anchor="middle">🚫 ZERO POPUP ADS</text>
+</svg>

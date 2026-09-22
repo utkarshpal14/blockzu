@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.priorapp.blockzu",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:0F:52:AB:E9:BE:E5:A9:72:B6:FD:97:5B:C9:22:DF:D3:6E:7E:6D:76:73:9A:89:12:34:56:78:90"
+      ]
+    }
+  }
+]
