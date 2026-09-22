@@ -17,14 +17,14 @@ export const MONETIZATION_CONFIG = {
   // 1. GOOGLE ADMOB (Android Native)
   // =========================================================================
   admob: {
-    // Official Google AdMob Sample App ID for Android
-    appId: 'ca-app-pub-3940256099942544~3347511713',
+    // Official Google AdMob App ID for Blockzu Android
+    appId: 'ca-app-pub-2910573088630764~2341747324',
 
-    // Ad Unit IDs (Google Sample Test Units)
+    // Ad Unit IDs
     units: {
-      rewarded: 'ca-app-pub-3940256099942544/5224354917',
-      interstitial: 'ca-app-pub-3940256099942544/1033173712',
-      banner: 'ca-app-pub-3940256099942544/6300978111'
+      rewarded: 'ca-app-pub-2910573088630764/7171402178',
+      interstitial: 'ca-app-pub-2910573088630764/4596286283',
+      banner: 'ca-app-pub-2910573088630764/3283204610'
     }
   },
 
