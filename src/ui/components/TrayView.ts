@@ -101,7 +101,7 @@ export class TrayView {
     this.dockGraphics.strokeRoundedRect(TRAY_DOCK_X + 1, TRAY_DOCK_Y + 1, TRAY_DOCK_WIDTH - 2, TRAY_DOCK_HEIGHT - 2, TRAY_DOCK_RADIUS - 1);
 
     // 4. 3 Recessed Piece Pedestals (Physical slots where pieces rest)
-    const pedestalSize = 110;
+    const pedestalSize = 100;
     TRAY_SLOT_X_OFFSETS.forEach((slotX) => {
       const px = slotX - pedestalSize / 2;
       const py = TRAY_Y - pedestalSize / 2;

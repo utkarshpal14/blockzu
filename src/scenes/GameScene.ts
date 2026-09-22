@@ -476,10 +476,10 @@ export class GameScene extends Phaser.Scene {
     // 0. In-Game Top Sponsored Banner Bar (Inside game canvas, above score & buttons)
     new BannerAd(this, width / 2, 22);
 
-    const topBarY = 64;
+    const topBarY = 70;
 
     // 1. Crown Best Score Pill (Top-Left)
-    const crownContainer = this.add.container(65, topBarY);
+    const crownContainer = this.add.container(68, topBarY);
     const crownBg = this.add.graphics();
     crownBg.fillStyle(0x0F172A, 0.85);
     crownBg.lineStyle(1.5, 0xF59E0B, 0.85);
@@ -501,7 +501,7 @@ export class GameScene extends Phaser.Scene {
     crownContainer.add(this.bestScoreText);
 
     // 2. Settings Gear Pill (Top-Right)
-    const settingsBtn = this.add.container(width - 34, topBarY);
+    const settingsBtn = this.add.container(width - 38, topBarY);
     const gearBg = this.add.graphics();
     gearBg.fillStyle(0x0F172A, 0.85);
     gearBg.lineStyle(1.5, 0x38BDF8, 0.85);
@@ -528,9 +528,9 @@ export class GameScene extends Phaser.Scene {
     });
 
     // 3. Huge Bold Clean Score Number (Center Top right between Best and Settings)
-    this.scoreText = this.add.text(width / 2, 64, `${scoreManager.getCurrentScore()}`, {
+    this.scoreText = this.add.text(width / 2, topBarY, `${scoreManager.getCurrentScore()}`, {
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '44px',
+      fontSize: '42px',
       fontStyle: 'bold',
       color: '#FFFFFF'
     }).setOrigin(0.5);

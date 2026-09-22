@@ -12,33 +12,33 @@ export const TRAY_CAPACITY = 3;
 export const CANVAS_WIDTH = 450;
 export const CANVAS_HEIGHT = 800;
 
-// Board Geometry (Enlarged for tactile immersion)
-export const TILE_SIZE = 47;
-export const CELL_SIZE = 47;
+// Board Geometry (Refined compact dimensions with generous screen clearance)
+export const TILE_SIZE = 41;
+export const CELL_SIZE = 41;
 export const CELL_GAP = 4;
-export const CELL_RADIUS = 8;
+export const CELL_RADIUS = 7;
 
-export const BOARD_CARD_WIDTH = 426;
-export const BOARD_CARD_HEIGHT = 426;
-export const BOARD_CARD_X = (CANVAS_WIDTH - BOARD_CARD_WIDTH) / 2; // 12
-export const BOARD_CARD_Y = 110;
+export const BOARD_CARD_WIDTH = 380;
+export const BOARD_CARD_HEIGHT = 380;
+export const BOARD_CARD_X = (CANVAS_WIDTH - BOARD_CARD_WIDTH) / 2; // 35
+export const BOARD_CARD_Y = 120;
 
 // Grid Start Coordinates (Inside Board Card)
-export const BOARD_GRID_START_X = BOARD_CARD_X + 11;
-export const BOARD_GRID_START_Y = BOARD_CARD_Y + 11;
+export const BOARD_GRID_START_X = BOARD_CARD_X + 12; // 47
+export const BOARD_GRID_START_Y = BOARD_CARD_Y + 12; // 132
 
 // Glassmorphic Tray Dock Layout & Scaling
-export const TRAY_DOCK_X = 14;
-export const TRAY_DOCK_Y = 555;
-export const TRAY_DOCK_WIDTH = 422;
-export const TRAY_DOCK_HEIGHT = 190;
-export const TRAY_DOCK_RADIUS = 24;
+export const TRAY_DOCK_X = 35;
+export const TRAY_DOCK_Y = 520;
+export const TRAY_DOCK_WIDTH = 380;
+export const TRAY_DOCK_HEIGHT = 175;
+export const TRAY_DOCK_RADIUS = 22;
 
-export const TRAY_Y = 650;
-export const TRAY_SLOT_X_OFFSETS = [85, 225, 365];
-export const TRAY_SCALE = 0.58;
+export const TRAY_Y = 608;
+export const TRAY_SLOT_X_OFFSETS = [98, 225, 352];
+export const TRAY_SCALE = 0.54;
 export const DRAG_SCALE = 1.0;
-export const DRAG_OFFSET_Y = 60; // Configurable finger offset
+export const DRAG_OFFSET_Y = 55; // Configurable finger offset
 
 // Fast Responsive Animation Timings (ms) - Block Blast style
 export const SNAP_DURATION = 80;
