@@ -32,8 +32,8 @@ export const MONETIZATION_CONFIG = {
   // 2. GOOGLE ADSENSE & H5 GAME ADS (Web / PWA)
   // =========================================================================
   adsense: {
-    // Publisher ID (e.g. ca-pub-XXXXXXXXXXXXXXXX)
-    publisherId: 'ca-pub-3940256099942544',
+    // Publisher ID (Google AdSense Account)
+    publisherId: 'ca-pub-29105730988630764',
     
     // H5 Game Ads AdSense channel / slot
     h5Channel: 'blockzu_web_game',
