@@ -1,6 +1,7 @@
 import { THEME_CATALOG } from '../data/themes';
 import { Theme, ThemeColors } from '../types/Theme';
 import { SaveManager } from './SaveManager';
+import { AnalyticsManager } from './AnalyticsManager';
 
 /**
  * THEME MANAGER
@@ -53,6 +54,7 @@ export class ThemeManager {
     if (this.saveManager.spendCoins(theme.coinCost)) {
       this.saveManager.unlockTheme(theme.id);
       this.saveManager.setActiveTheme(theme.id);
+      AnalyticsManager.getInstance().recordThemePurchased(theme.id, theme.coinCost);
       this.checkCollectorAchievement();
       return true;
     }

@@ -587,6 +587,60 @@ Stable Performance
 
 ---
 
+# M11.5 — Beta Analytics
+
+## Goal
+
+Capture core player telemetry, retention metrics, and progression data locally to evaluate balance and economy before public launch.
+
+### Deliverables
+
+```text
+Average Score Telemetry
+
+Games Played Tracking
+
+Themes Purchased Counter
+
+Achievements Claimed Counter
+
+Revives Used Counter
+
+Session Length & Playtime Analytics
+
+Developer Console Export (window.blockzuAnalytics)
+
+In-Game Beta Analytics Dashboard View
+```
+
+### Acceptance Criteria
+
+```text
+Real-time Local Telemetry Aggregation
+
+Zero Loss Across Saves & Backups
+
+Accurate Math for Averages & Durations
+
+One-Click Telemetry JSON Export
+
+100% Invariant Test Coverage
+```
+
+### Estimated Time
+
+```text
+1 Day
+```
+
+### Status
+
+```text
+✅ Completed
+```
+
+---
+
 # M12 — Release
 
 ## Goal
@@ -649,6 +703,7 @@ PWA Installable
 | M9 | Monetization | 2 Days |
 | M10 | Polish | 3 Days |
 | M11 | QA & Testing | 4 Days |
+| M11.5 | Beta Analytics | 1 Day |
 | M12 | Release | 1–2 Days |
 
 ---
@@ -656,7 +711,7 @@ PWA Installable
 # Total Estimated Duration
 
 ```text
-30–32 Days
+31–33 Days
 ```
 
 For a single developer working consistently.
@@ -692,6 +747,8 @@ Blockzu Version 1.0 is complete when:
 
 ✓ M11 Completed
 
+✓ M11.5 Completed
+
 ✓ M12 Completed
 ```
 
@@ -714,6 +771,7 @@ M8 Save System             ✅
 M9 Monetization            ✅
 M10 Polish                 ✅
 M11 QA & Testing           ✅
+M11.5 Beta Analytics       ✅
 M12 Release                ⬜
 ```
 

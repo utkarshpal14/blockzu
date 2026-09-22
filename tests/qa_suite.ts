@@ -19,6 +19,8 @@ import { AchievementManager } from '../src/managers/AchievementManager';
 import { MissionManager } from '../src/managers/MissionManager';
 import { DailyRewardManager } from '../src/managers/DailyRewardManager';
 import { BoardManager } from '../src/managers/BoardManager';
+import { StatisticsManager } from '../src/managers/StatisticsManager';
+import { AnalyticsManager } from '../src/managers/AnalyticsManager';
 import { THEME_CATALOG } from '../src/data/themes';
 
 let passed = 0;
@@ -322,6 +324,91 @@ async function runAllTests() {
     assert(loadedData !== null, 'Loaded data successfully despite corrupted primary save');
     assert(typeof loadedData.economy.coins === 'number', 'Economy object intact');
     assert(loadedData.metadata.version === 1, 'Metadata version intact');
+  }
+
+  // --------------------------------------------------------------------------
+  // TEST 8: BETA ANALYTICS INVARIANTS & TELEMETRY SUITE (Milestone 11.5)
+  // --------------------------------------------------------------------------
+  console.log('\n--- [TEST 8] Beta Analytics Invariants & Telemetry (M11.5) ---');
+  {
+    saveManager.resetProgress();
+    const analyticsManager = AnalyticsManager.getInstance();
+    const statsManager = StatisticsManager.getInstance();
+    const themeManager = ThemeManager.getInstance();
+    const achievementManager = AchievementManager.getInstance();
+
+    // 1. Initial State
+    let analytics = analyticsManager.getAnalytics();
+    assert(analytics.gamesPlayed === 0, 'Initial analytics gamesPlayed is 0');
+    assert(analytics.averageScore === 0, 'Initial analytics averageScore is 0');
+    assert(analytics.themesPurchased === 0, 'Initial analytics themesPurchased is 0');
+    assert(analytics.achievementsClaimed === 0, 'Initial analytics achievementsClaimed is 0');
+    assert(analytics.revivesUsed === 0, 'Initial analytics revivesUsed is 0');
+    assert(analytics.totalSessionTimeSeconds === 0, 'Initial analytics totalSessionTimeSeconds is 0');
+
+    // 2. Games Played & Average Score tracking
+    statsManager.recordGameFinished(1000, 4, 12, 2);
+    statsManager.recordGameFinished(2000, 8, 24, 3);
+    statsManager.recordGameFinished(3000, 12, 36, 4);
+
+    analytics = analyticsManager.getAnalytics();
+    assert(analytics.gamesPlayed === 3, 'Analytics accurately recorded 3 games played');
+    assert(analytics.averageScore === 2000, 'Analytics accurately computed dynamic average score of 2000');
+
+    // 3. Themes Purchased tracking
+    const darkTheme = THEME_CATALOG.find((t) => t.id === 'dark')!;
+    saveManager.addCoins(1400);
+    themeManager.purchaseTheme(darkTheme);
+
+    analytics = analyticsManager.getAnalytics();
+    assert(analytics.themesPurchased === 1, 'Analytics accurately recorded 1 theme purchased');
+
+    // 4. Achievements Claimed tracking
+    achievementManager.updateProgress('first_placement', 1);
+    achievementManager.claimReward('first_placement');
+
+    analytics = analyticsManager.getAnalytics();
+    assert(analytics.achievementsClaimed === 1, 'Analytics accurately recorded 1 achievement claimed');
+
+    // 5. Revives Used tracking
+    analyticsManager.recordReviveUsed();
+    analytics = analyticsManager.getAnalytics();
+    assert(analytics.revivesUsed === 1, 'Analytics accurately recorded 1 revive used');
+
+    // 6. Session Length & Multi-Session Tracking
+    analyticsManager.recordSessionTime(120); // 120 seconds in session 1
+    analytics = analyticsManager.getAnalytics();
+    assert(analytics.totalSessionTimeSeconds === 120, 'Accrued 120s total session time');
+    assert(analytics.averageSessionLengthSeconds === 120, 'Session 1 average duration is 120s');
+
+    // Start Session 2
+    analyticsManager.startNewSession();
+    analyticsManager.recordSessionTime(60); // 60 seconds in session 2
+    analytics = analyticsManager.getAnalytics();
+    assert(analytics.sessionCount === 2, 'Session count incremented to 2');
+    assert(analytics.totalSessionTimeSeconds === 180, 'Total session time is 180s (120s + 60s)');
+    assert(analytics.averageSessionLengthSeconds === 90, 'Average session duration is (180s / 2) = 90s');
+
+    // 7. Structured Report & JSON Export
+    const report = analyticsManager.getSummaryReport();
+    assert(report.metrics.averageScore === 2000, 'Summary report contains correct averageScore');
+    assert(report.metrics.gamesPlayed === 3, 'Summary report contains correct gamesPlayed');
+    assert(report.metrics.themesPurchased === 1, 'Summary report contains correct themesPurchased');
+    assert(report.metrics.achievementsClaimed === 1, 'Summary report contains correct achievementsClaimed');
+    assert(report.metrics.revivesUsed === 1, 'Summary report contains correct revivesUsed');
+    assert(typeof report.metrics.totalSessionTimeFormatted === 'string', 'Formatted session duration present');
+
+    const exportedJSON = analyticsManager.exportJSON();
+    const parsedJSON = JSON.parse(exportedJSON);
+    assert(parsedJSON.metrics.gamesPlayed === 3, 'Exported JSON parses cleanly with accurate telemetry data');
+
+    // 8. Persistence across Storage reload
+    saveManager.save();
+    const freshStorageLoad = storageService.load();
+    assert(freshStorageLoad.analytics !== undefined, 'Analytics object persisted in localStorage');
+    assert(freshStorageLoad.analytics?.gamesPlayed === 3, 'Persisted gamesPlayed retained after storage reload');
+    assert(freshStorageLoad.analytics?.themesPurchased === 1, 'Persisted themesPurchased retained after storage reload');
+    assert(freshStorageLoad.analytics?.revivesUsed === 1, 'Persisted revivesUsed retained after storage reload');
   }
 
   // --------------------------------------------------------------------------

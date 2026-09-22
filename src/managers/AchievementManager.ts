@@ -2,6 +2,7 @@ import { ACHIEVEMENT_CATALOG } from '../data/achievements';
 import { AchievementDefinition } from '../types/Achievement';
 import { AchievementData } from '../types/PlayerData';
 import { SaveManager } from './SaveManager';
+import { AnalyticsManager } from './AnalyticsManager';
 
 /**
  * ACHIEVEMENT MANAGER
@@ -14,7 +15,7 @@ export class AchievementManager {
 
   private constructor() {
     this.saveManager = SaveManager.getInstance();
-    this.initAchievements();
+    this.ensureInitialized();
   }
 
   public static getInstance(): AchievementManager {
@@ -24,7 +25,7 @@ export class AchievementManager {
     return AchievementManager.instance;
   }
 
-  private initAchievements() {
+  public ensureInitialized() {
     const data = this.saveManager.getData();
     if (!data.achievements || data.achievements.length === 0) {
       data.achievements = ACHIEVEMENT_CATALOG.map((def) => ({
@@ -42,6 +43,7 @@ export class AchievementManager {
   }
 
   public getAchievementState(id: string): AchievementData | undefined {
+    this.ensureInitialized();
     return this.saveManager.getData().achievements.find((a) => a.id === id);
   }
 
@@ -50,6 +52,7 @@ export class AchievementManager {
   }
 
   public getUnclaimedCount(): number {
+    this.ensureInitialized();
     const data = this.saveManager.getData();
     if (!data.achievements) return 0;
     return data.achievements.filter((a) => a.completed && !a.claimed).length;
@@ -92,6 +95,8 @@ export class AchievementManager {
     if (def.rewardCoins > 0) {
       this.saveManager.addCoins(def.rewardCoins);
     }
+
+    AnalyticsManager.getInstance().recordAchievementClaimed(id, def.rewardCoins);
 
     if (id === 'collector') {
       this.saveManager.unlockTheme('golden');

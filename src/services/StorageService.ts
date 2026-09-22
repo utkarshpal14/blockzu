@@ -155,6 +155,21 @@ export class StorageService {
       data.dailyReward = { lastClaimTime: 0, currentStreak: 0 };
       changed = true;
     }
+    if (!data.analytics) {
+      data.analytics = {
+        averageScore: data.statistics?.averageScore || 0,
+        gamesPlayed: data.statistics?.gamesPlayed || 0,
+        themesPurchased: Math.max(0, (data.themes?.unlockedThemes?.length || 1) - 1),
+        achievementsClaimed: data.achievements?.filter((a) => a.claimed)?.length || 0,
+        revivesUsed: 0,
+        totalSessionTimeSeconds: data.metadata?.totalPlayTime || 0,
+        sessionCount: 1,
+        averageSessionLengthSeconds: data.metadata?.totalPlayTime || 0,
+        lastSessionLengthSeconds: 0,
+        lastSessionTimestamp: Date.now()
+      };
+      changed = true;
+    }
     if (changed) {
       this.save(data);
     }

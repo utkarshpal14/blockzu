@@ -6,7 +6,7 @@ import { SaveManager } from '../../managers/SaveManager';
 
 /**
  * STATISTICS MODAL
- * Colorful, high-contrast dashboard with individual vibrant color themes for all 8 metrics:
+ * High-contrast, colorful dashboard for players with individual vibrant color themes for all 8 metrics:
  * - Highest Score: Gold (#EAB308)
  * - Best Move: Ruby Coral (#EF4444)
  * - Games Played: Royal Purple (#A855F7)

@@ -54,5 +54,17 @@ export const DEFAULT_PLAYER_DATA: PlayerData = {
     rewardedAdsWatchedToday: 0,
     lastInterstitialTime: 0,
     matchesSinceLastInterstitial: 0
+  },
+  analytics: {
+    averageScore: 0,
+    gamesPlayed: 0,
+    themesPurchased: 0,
+    achievementsClaimed: 0,
+    revivesUsed: 0,
+    totalSessionTimeSeconds: 0,
+    sessionCount: 1,
+    averageSessionLengthSeconds: 0,
+    lastSessionLengthSeconds: 0,
+    lastSessionTimestamp: Date.now()
   }
 };

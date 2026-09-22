@@ -73,7 +73,15 @@ export class SaveManager {
 
   public addPlayTime(seconds: number): number {
     const meta = this.getMetadata();
-    meta.totalPlayTime += Math.max(0, Math.floor(seconds));
+    const valid = Math.max(0, Math.floor(seconds));
+    meta.totalPlayTime += valid;
+    if (this.data.analytics) {
+      this.data.analytics.totalSessionTimeSeconds += valid;
+      this.data.analytics.lastSessionLengthSeconds += valid;
+      this.data.analytics.averageSessionLengthSeconds = Math.round(
+        this.data.analytics.totalSessionTimeSeconds / Math.max(1, this.data.analytics.sessionCount)
+      );
+    }
     return meta.totalPlayTime;
   }
 

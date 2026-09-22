@@ -1,5 +1,6 @@
 import { SaveManager } from './SaveManager';
 import { StatisticsData } from '../types/PlayerData';
+import { AnalyticsManager } from './AnalyticsManager';
 
 /**
  * STATISTICS MANAGER
@@ -39,6 +40,7 @@ export class StatisticsManager {
     stats.averageScore = Math.round(stats.totalScore / Math.max(stats.gamesPlayed, 1));
 
     this.saveManager.save();
+    AnalyticsManager.getInstance().recordGameFinished(finalScore);
   }
 
   public recordMoveScore(moveScore: number) {

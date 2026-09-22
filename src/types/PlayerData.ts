@@ -15,6 +15,20 @@ export interface PlayerData {
   settings: SettingsData;
   dailyReward?: DailyRewardData;
   adState?: AdStateData;
+  analytics?: BetaAnalyticsData;
+}
+
+export interface BetaAnalyticsData {
+  averageScore: number;
+  gamesPlayed: number;
+  themesPurchased: number;
+  achievementsClaimed: number;
+  revivesUsed: number;
+  totalSessionTimeSeconds: number;
+  sessionCount: number;
+  averageSessionLengthSeconds: number;
+  lastSessionLengthSeconds: number;
+  lastSessionTimestamp: number;
 }
 
 export interface SaveMetadata {

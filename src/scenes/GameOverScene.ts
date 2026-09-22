@@ -7,6 +7,7 @@ import { AudioManager } from '../managers/AudioManager';
 import { AchievementManager } from '../managers/AchievementManager';
 import { MissionManager } from '../managers/MissionManager';
 import { AdManager } from '../managers/AdManager';
+import { AnalyticsManager } from '../managers/AnalyticsManager';
 import { SessionStats } from '../systems/GameFlowSystem';
 import { AmbientParticles } from '../ui/components/AmbientParticles';
 
@@ -219,6 +220,7 @@ export class GameOverScene extends Phaser.Scene {
         audioManager.playButtonClick();
         adManager.showRewardedAd(this, 'revive', (rewarded) => {
           if (rewarded) {
+            AnalyticsManager.getInstance().recordReviveUsed();
             this.scene.start('GameScene', {
               isRevive: true,
               priorScore: finalScore,
