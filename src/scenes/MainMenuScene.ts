@@ -13,6 +13,8 @@ import { SettingsModal } from '../ui/modals/SettingsModal';
 import { DailyRewardModal } from '../ui/modals/DailyRewardModal';
 import { MissionsModal } from '../ui/modals/MissionsModal';
 import { AchievementsModal } from '../ui/modals/AchievementsModal';
+import { ExitModal } from '../ui/modals/ExitModal';
+import { BackButtonManager } from '../managers/BackButtonManager';
 import { AdManager } from '../managers/AdManager';
 import { BannerAd } from '../ui/components/BannerAd';
 
@@ -590,6 +592,18 @@ export class MainMenuScene extends Phaser.Scene {
     });
 
     return container;
+  }
+
+  /**
+   * Handles Android Hardware / Gesture Back button on the Main Menu.
+   * Prompts the user with the Exit Confirmation Modal.
+   */
+  public handleBackPress() {
+    if (!BackButtonManager.getInstance().hasOpenModals()) {
+      const audioManager = AudioManager.getInstance();
+      audioManager.playButtonClick();
+      new ExitModal(this);
+    }
   }
 }
 

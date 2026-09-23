@@ -16,9 +16,11 @@ import { GameFlowSystem, SessionStats } from '../systems/GameFlowSystem';
 import { FloatingText } from '../ui/components/FloatingText';
 import { PieceDefinition } from '../types/Piece';
 import { SettingsModal } from '../ui/modals/SettingsModal';
+import { PauseModal } from '../ui/modals/PauseModal';
 import { AchievementManager } from '../managers/AchievementManager';
 import { MissionManager } from '../managers/MissionManager';
 import { ProgressionToast } from '../ui/components/ProgressionToast';
+import { BackButtonManager } from '../managers/BackButtonManager';
 
 /**
  * GAME SCENE (Core Gameplay Loop)
@@ -534,5 +536,28 @@ export class GameScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#FFFFFF'
     }).setOrigin(0.5);
+  }
+
+  /**
+   * Handles Android Hardware / Gesture Back button during active gameplay.
+   * Pauses the game, locks the piece tray, and opens the PauseModal.
+   */
+  public handleBackPress() {
+    if (!BackButtonManager.getInstance().hasOpenModals()) {
+      const audioManager = AudioManager.getInstance();
+      audioManager.playButtonClick();
+      this.trayView.setLocked(true);
+      new PauseModal(this, {
+        onResume: () => {
+          this.trayView.setLocked(false);
+        },
+        onRestart: () => {
+          this.scene.restart();
+        },
+        onMainMenu: () => {
+          this.scene.start('MainMenuScene');
+        }
+      });
+    }
   }
 }

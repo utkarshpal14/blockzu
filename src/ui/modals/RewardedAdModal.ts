@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/gameplay';
 import { AudioManager } from '../../managers/AudioManager';
+import { BackButtonManager } from '../../managers/BackButtonManager';
 
 /**
  * REWARDED / INTERSTITIAL AD MODAL
@@ -40,6 +41,7 @@ export class RewardedAdModal extends Phaser.GameObjects.Container {
     scene.add.existing(this);
     this.setDepth(150); // Above all other modals
 
+    BackButtonManager.getInstance().pushModal(this, () => this.close(false));
     this.animateOpen();
     this.startAdTimer();
   }
@@ -308,6 +310,7 @@ export class RewardedAdModal extends Phaser.GameObjects.Container {
   }
 
   public close(rewarded: boolean = false) {
+    BackButtonManager.getInstance().removeModal(this);
     if (this.timerEvent) {
       this.timerEvent.destroy();
     }

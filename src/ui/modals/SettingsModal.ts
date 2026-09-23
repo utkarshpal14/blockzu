@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/gameplay';
 import { AudioManager } from '../../managers/AudioManager';
 import { SaveManager } from '../../managers/SaveManager';
+import { BackButtonManager } from '../../managers/BackButtonManager';
 
 /**
  * SETTINGS MODAL
@@ -30,6 +31,7 @@ export class SettingsModal extends Phaser.GameObjects.Container {
     scene.add.existing(this);
     this.setDepth(100);
 
+    BackButtonManager.getInstance().pushModal(this, () => this.close());
     this.animateOpen();
   }
 
@@ -432,6 +434,7 @@ export class SettingsModal extends Phaser.GameObjects.Container {
   }
 
   public close() {
+    BackButtonManager.getInstance().removeModal(this);
     this.scene.tweens.add({
       targets: [this.panel, this.backdrop],
       alpha: 0,

@@ -5,6 +5,7 @@ import { SaveManager } from '../../managers/SaveManager';
 import { AudioManager } from '../../managers/AudioManager';
 import { Theme } from '../../types/Theme';
 import { BlockRenderer } from '../components/BlockRenderer';
+import { BackButtonManager } from '../../managers/BackButtonManager';
 
 /**
  * THEMES MODAL
@@ -29,6 +30,7 @@ export class ThemesModal extends Phaser.GameObjects.Container {
     scene.add.existing(this);
     this.setDepth(100);
 
+    BackButtonManager.getInstance().pushModal(this, () => this.close());
     this.animateOpen();
   }
 
@@ -428,6 +430,7 @@ export class ThemesModal extends Phaser.GameObjects.Container {
   }
 
   public close() {
+    BackButtonManager.getInstance().removeModal(this);
     this.scene.tweens.add({
       targets: [this.panel, this.backdrop],
       alpha: 0,

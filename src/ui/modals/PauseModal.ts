@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/gameplay';
 import { AudioManager } from '../../managers/AudioManager';
 import { SettingsModal } from './SettingsModal';
+import { BackButtonManager } from '../../managers/BackButtonManager';
 
 export interface PauseModalCallbacks {
   onResume: () => void;
@@ -31,6 +32,7 @@ export class PauseModal extends Phaser.GameObjects.Container {
     scene.add.existing(this);
     this.setDepth(100);
 
+    BackButtonManager.getInstance().pushModal(this, () => this.close(() => this.callbacks.onResume()));
     this.animateOpen();
   }
 
@@ -184,6 +186,7 @@ export class PauseModal extends Phaser.GameObjects.Container {
   }
 
   public close(onComplete?: () => void) {
+    BackButtonManager.getInstance().removeModal(this);
     this.scene.tweens.add({
       targets: [this.panel, this.backdrop],
       alpha: 0,

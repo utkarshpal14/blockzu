@@ -418,4 +418,17 @@ export class GameOverScene extends Phaser.Scene {
       });
     }
   }
+
+  /**
+   * Handles Android Hardware / Gesture Back button on Game Over screen.
+   * Returns smoothly to Main Menu.
+   */
+  public handleBackPress() {
+    const audioManager = AudioManager.getInstance();
+    audioManager.playButtonClick();
+    this.cameras.main.fadeOut(180, 0, 0, 0);
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      this.scene.start('MainMenuScene');
+    });
+  }
 }
