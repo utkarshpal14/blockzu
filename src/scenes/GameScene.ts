@@ -539,6 +539,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
+   * Continuous per-frame engine loop: synchronizes smooth 60/120 FPS piece drag tracking.
+   */
+  update(_time: number, _delta: number) {
+    if (this.trayView) {
+      this.trayView.update();
+    }
+  }
+
+  /**
    * Handles Android Hardware / Gesture Back button during active gameplay.
    * Pauses the game, locks the piece tray, and opens the PauseModal.
    */
