@@ -66,7 +66,9 @@ export class PieceView extends Phaser.GameObjects.Container {
       }
     }
 
-    // Set interactive container hitbox for pointer events
-    this.setSize(width, height);
+    // Set generous interactive container hitbox so touching around small/any piece is effortless
+    const hitW = Math.max(width + 60, 200);
+    const hitH = Math.max(height + 60, 200);
+    this.setSize(hitW, hitH);
   }
 }

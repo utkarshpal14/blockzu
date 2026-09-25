@@ -40,6 +40,7 @@ export class TrayView {
 
   private dockContainer: Phaser.GameObjects.Container;
   private dockGraphics: Phaser.GameObjects.Graphics;
+  private slotZones: Phaser.GameObjects.Zone[] = [];
 
   private pieceViews: (PieceView | null)[];
   private isDragging: boolean = false;
@@ -50,6 +51,11 @@ export class TrayView {
   private dragOriginY: number = 0;
 
   private onPlacementCallback?: (piece: PieceDefinition, row: number, col: number, onComplete: () => void) => void;
+
+  // Single bound listeners for performance and zero event accumulation
+  private pointerDownHandler: (pointer: Phaser.Input.Pointer) => void;
+  private pointerMoveHandler: (pointer: Phaser.Input.Pointer) => void;
+  private pointerUpHandler: (pointer: Phaser.Input.Pointer) => void;
 
   constructor(
     scene: Phaser.Scene,
@@ -72,11 +78,37 @@ export class TrayView {
     this.renderDock();
 
     this.pieceViews = [null, null, null];
+
+    // Initialize unified touch drag listeners once
+    this.pointerDownHandler = (pointer: Phaser.Input.Pointer) => {
+      if (this.isDragging || this.isLocked) return;
+      // If user touches anywhere in the tray region, trigger instant smart pickup
+      if (pointer.y >= TRAY_DOCK_Y - 25 && pointer.y <= TRAY_DOCK_Y + TRAY_DOCK_HEIGHT + 35) {
+        this.handleTrayRegionPointerDown(pointer);
+      }
+    };
+
+    this.pointerMoveHandler = (pointer: Phaser.Input.Pointer) => {
+      if (!this.isDragging || !this.draggedPiece) return;
+      this.draggedPiece.x = pointer.x;
+      this.draggedPiece.y = pointer.y - DRAG_OFFSET_Y;
+      this.updateGhostPreview(this.draggedPiece);
+    };
+
+    this.pointerUpHandler = () => {
+      if (!this.isDragging || !this.draggedPiece) return;
+      this.handlePieceDrop(this.draggedPiece, this.draggedSlotIndex);
+    };
+
+    this.scene.input.on('pointerdown', this.pointerDownHandler);
+    this.scene.input.on('pointermove', this.pointerMoveHandler);
+    this.scene.input.on('pointerup', this.pointerUpHandler);
+
     this.spawnBatch();
   }
 
   /**
-   * Renders the glassmorphic console shelf dock with 3 recessed pedestals.
+   * Renders the glassmorphic console shelf dock with 3 recessed pedestals and generous touch hit zones.
    */
   public renderDock(): void {
     this.dockGraphics.clear();
@@ -100,9 +132,12 @@ export class TrayView {
     this.dockGraphics.lineStyle(1, 0xffffff, 0.14);
     this.dockGraphics.strokeRoundedRect(TRAY_DOCK_X + 1, TRAY_DOCK_Y + 1, TRAY_DOCK_WIDTH - 2, TRAY_DOCK_HEIGHT - 2, TRAY_DOCK_RADIUS - 1);
 
-    // 4. 3 Recessed Piece Pedestals (Physical slots where pieces rest)
+    // 4. 3 Recessed Piece Pedestals & Interactive Slot Zones
     const pedestalSize = 90;
-    TRAY_SLOT_X_OFFSETS.forEach((slotX) => {
+    this.slotZones.forEach(z => z.destroy());
+    this.slotZones = [];
+
+    TRAY_SLOT_X_OFFSETS.forEach((slotX, i) => {
       const px = slotX - pedestalSize / 2;
       const py = TRAY_Y - pedestalSize / 2;
 
@@ -115,6 +150,14 @@ export class TrayView {
 
       this.dockGraphics.lineStyle(1, 0xffffff, 0.08);
       this.dockGraphics.strokeRoundedRect(px + 1, py + 1, pedestalSize - 2, pedestalSize - 2, 15);
+
+      // Generous 110x150 touch zone per slot so touching near/around block picks it up immediately
+      const zone = this.scene.add.zone(slotX, TRAY_Y, 110, 150);
+      zone.setInteractive({ useHandCursor: true });
+      zone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        this.handleSlotPointerDown(i, pointer);
+      });
+      this.slotZones.push(zone);
     });
   }
 
@@ -140,7 +183,7 @@ export class TrayView {
         const slotY = TRAY_Y;
 
         const pieceView = new PieceView(this.scene, slotX, slotY, pieceDef);
-        this.setupPieceInteraction(pieceView, i, slotX, slotY);
+        this.setupPieceInteraction(pieceView, i);
 
         // Entrance scale animation with subtle bounce
         pieceView.setScale(0);
@@ -158,51 +201,102 @@ export class TrayView {
   }
 
   /**
-   * Configures touch drag-and-drop mechanics with Block Blast touch-first feel.
+   * Configures touch drag-and-drop mechanics on the piece itself.
    */
-  private setupPieceInteraction(pieceView: PieceView, slotIndex: number, slotX: number, slotY: number): void {
+  private setupPieceInteraction(pieceView: PieceView, slotIndex: number): void {
     pieceView.setInteractive({ useHandCursor: true });
 
     pieceView.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (this.isDragging || this.isLocked) return;
+      this.startDragging(pieceView, slotIndex, pointer);
+    });
+  }
 
-      this.isDragging = true;
-      this.draggedPiece = pieceView;
-      this.draggedSlotIndex = slotIndex;
-      this.dragOriginX = slotX;
-      this.dragOriginY = slotY;
+  /**
+   * Handles touch on a slot zone (or nearby) with smart fallback for remaining pieces.
+   */
+  private handleSlotPointerDown(slotIndex: number, pointer: Phaser.Input.Pointer): void {
+    if (this.isDragging || this.isLocked) return;
 
-      pieceView.setDepth(100);
-      this.audioManager.playPickup();
+    // 1. Direct hit on current slot's piece
+    const piece = this.pieceViews[slotIndex];
+    if (piece && piece.active) {
+      this.startDragging(piece, slotIndex, pointer);
+      return;
+    }
 
-      // Smoothly scale up to 1.0x (full board tile size)
-      this.scene.tweens.add({
-        targets: pieceView,
-        scale: DRAG_SCALE,
-        duration: 70,
-        ease: 'Linear'
-      });
+    // 2. If current slot is empty, check remaining active pieces
+    const activePieces: { piece: PieceView; index: number; dist: number }[] = [];
+    for (let i = 0; i < 3; i++) {
+      const p = this.pieceViews[i];
+      if (p && p.active) {
+        activePieces.push({ piece: p, index: i, dist: Math.abs(pointer.x - TRAY_SLOT_X_OFFSETS[i]) });
+      }
+    }
 
-      // Position with vertical finger offset
-      pieceView.x = pointer.x;
-      pieceView.y = pointer.y - DRAG_OFFSET_Y;
+    // If only 1 piece is left in the tray, grab it immediately wherever the user touched in the tray!
+    if (activePieces.length === 1) {
+      this.startDragging(activePieces[0].piece, activePieces[0].index, pointer);
+      return;
+    }
 
-      this.updateGhostPreview(pieceView);
+    // If multiple pieces are active, pick the nearest one if within reasonable reach (< 85px)
+    if (activePieces.length > 1) {
+      activePieces.sort((a, b) => a.dist - b.dist);
+      if (activePieces[0].dist < 85) {
+        this.startDragging(activePieces[0].piece, activePieces[0].index, pointer);
+      }
+    }
+  }
+
+  /**
+   * Global tray region touch detector for maximum forgiving touch responsiveness.
+   */
+  private handleTrayRegionPointerDown(pointer: Phaser.Input.Pointer): void {
+    if (this.isDragging || this.isLocked) return;
+
+    let closestSlot = 0;
+    let minDist = Infinity;
+    for (let i = 0; i < 3; i++) {
+      const dist = Math.abs(pointer.x - TRAY_SLOT_X_OFFSETS[i]);
+      if (dist < minDist) {
+        minDist = dist;
+        closestSlot = i;
+      }
+    }
+
+    this.handleSlotPointerDown(closestSlot, pointer);
+  }
+
+  /**
+   * Initiates instant drag-and-drop with snappy scale-up and audio feedback.
+   */
+  public startDragging(pieceView: PieceView, slotIndex: number, pointer: Phaser.Input.Pointer): void {
+    if (this.isDragging || this.isLocked) return;
+    if (!pieceView || !pieceView.active) return;
+
+    this.isDragging = true;
+    this.draggedPiece = pieceView;
+    this.draggedSlotIndex = slotIndex;
+    this.dragOriginX = TRAY_SLOT_X_OFFSETS[slotIndex];
+    this.dragOriginY = TRAY_Y;
+
+    pieceView.setDepth(100);
+    this.audioManager.playPickup();
+
+    // Smoothly scale up to 1.0x (full board tile size)
+    this.scene.tweens.killTweensOf(pieceView);
+    this.scene.tweens.add({
+      targets: pieceView,
+      scale: DRAG_SCALE,
+      duration: 60,
+      ease: 'Quad.easeOut'
     });
 
-    this.scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      if (!this.isDragging || !this.draggedPiece || this.draggedPiece !== pieceView) return;
+    // Position immediately with vertical finger offset
+    pieceView.x = pointer.x;
+    pieceView.y = pointer.y - DRAG_OFFSET_Y;
 
-      this.draggedPiece.x = pointer.x;
-      this.draggedPiece.y = pointer.y - DRAG_OFFSET_Y;
-
-      this.updateGhostPreview(this.draggedPiece);
-    });
-
-    this.scene.input.on('pointerup', () => {
-      if (!this.isDragging || !this.draggedPiece || this.draggedPiece !== pieceView) return;
-      this.handlePieceDrop(this.draggedPiece, this.draggedSlotIndex);
-    });
+    this.updateGhostPreview(pieceView);
   }
 
   /**
@@ -354,6 +448,10 @@ export class TrayView {
   }
 
   public destroy(): void {
+    this.scene.input.off('pointerdown', this.pointerDownHandler);
+    this.scene.input.off('pointermove', this.pointerMoveHandler);
+    this.scene.input.off('pointerup', this.pointerUpHandler);
+    this.slotZones.forEach((z) => z.destroy());
     this.pieceViews.forEach((pv) => pv?.destroy());
     this.dockContainer.destroy();
   }
